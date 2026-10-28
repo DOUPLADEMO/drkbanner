@@ -184,6 +184,19 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
           </div>
         </div>
         <span style="font-size:12px;color:var(--acc)">{{ cleanNote }}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12.5px;color:var(--fg2)">Igazítás · {{ alignTarget }}</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ alignH }}" as="o" hint-placeholder-count="3">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--fg2)" style-hover="color:var(--fg)">{{ o.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ alignV }}" as="o" hint-placeholder-count="3">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--fg2)" style-hover="color:var(--fg)">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
         <button onClick="{{ resetSize }}" style="background:none;border:0;color:var(--fg3);font-size:12px;cursor:pointer;padding:6px" style-hover="color:var(--fg)">Méret alaphelyzet</button>
       </div>
 
@@ -367,6 +380,7 @@ class Component extends DCLogic {
     if(this.big){const bc=this.big.getContext('2d'),bk=this.big.width/cur.w;this.render(bc,cur,bk,did);
       const bb=(this.boxes[kOf(cur)]||{})[S.selText];
       if(bb){bc.save();bc.setTransform(bk,0,0,bk,0,0);bc.strokeStyle='#e0d1b0';bc.lineWidth=2/bk;bc.setLineDash([8/bk,6/bk]);const p=8;bc.strokeRect(bb.x-p,bb.y-p,bb.w+2*p,bb.h+2*p);bc.restore();}
+      if(this.guides){bc.save();bc.setTransform(bk,0,0,bk,0,0);bc.strokeStyle='#ff4fa3';bc.lineWidth=1.5/bk;bc.setLineDash([6/bk,5/bk]);bc.beginPath();if(this.guides.x!==null){bc.moveTo(this.guides.x,0);bc.lineTo(this.guides.x,cur.h);}if(this.guides.y!==null){bc.moveTo(0,this.guides.y);bc.lineTo(cur.w,this.guides.y);}bc.stroke();bc.restore();}
       if(isStory(cur)){const tz=cur.h*.14,b35=cur.h*.35,b40=cur.h*.4;bc.save();bc.setTransform(bk,0,0,bk,0,0);bc.fillStyle='rgba(224,168,79,.14)';bc.fillRect(0,0,cur.w,tz);bc.fillRect(0,cur.h-b35,cur.w,b35);bc.strokeStyle='rgba(224,168,79,.95)';bc.lineWidth=2/bk;bc.setLineDash([10/bk,8/bk]);bc.beginPath();bc.moveTo(0,tz);bc.lineTo(cur.w,tz);bc.moveTo(0,cur.h-b35);bc.lineTo(cur.w,cur.h-b35);bc.stroke();bc.globalAlpha=.5;bc.beginPath();bc.moveTo(0,cur.h-b40);bc.lineTo(cur.w,cur.h-b40);bc.stroke();bc.globalAlpha=1;bc.setLineDash([]);bc.fillStyle='rgba(224,168,79,1)';bc.font='600 '+(15/bk)+'px Montserrat';bc.fillText('BIZTONSÁGI ZÓNA · felül 14%',16/bk,tz-12/bk);bc.fillText('alul 40% (belső)',16/bk,cur.h-b40-10/bk);bc.fillText('alul 35% (min.)',16/bk,cur.h-b35+26/bk);bc.restore();}}
     SIZES.forEach(sz=>{const c=this.thumbEls[kOf(sz)];if(c)this.render(c.getContext('2d'),sz,c.width/sz.w,did);});
   }
@@ -412,8 +426,8 @@ class Component extends DCLogic {
     const W=sz.w,H=sz.h,tc=COLS[D.color],logo=this.imgs.logo,T=ov.t||{},tr=id=>T[id]||{x:0,y:0},B={},M=this.metrics(D.headline),b=sol.blk;
     ctx.textBaseline='alphabetic';
     if(b){const s=b.s*D.hs,g=this.blockGeom(M,b.v,s,sol.ctaOn,sol.CW),c=g.c,lines=b.v.n>1?M.lines:[M.one],w=g.w,h=g.h;
-      const bx=b.x+b.ax*(b.w-w),by=b.y+b.ay*(b.h-h),o=tr('hl'),al=b.ax===0?'left':b.ax===1?'right':'center';
-      const x0=(b.ax===0?bx:b.ax===1?bx+w-g.tw:bx+(w-g.tw)/2)+o.x,y=by+o.y,tx=b.ax===0?x0:b.ax===1?x0+g.tw:x0+g.tw/2;
+      const bx=b.x+b.ax*(b.w-w),by=b.y+b.ay*(b.h-h),o=tr('hl'),al=ov.al||(b.ax===0?'left':b.ax===1?'right':'center');
+      const x0=(b.ax===0?bx:b.ax===1?bx+w-g.tw:bx+(w-g.tw)/2)+o.x,y=by+o.y,tx=al==='left'?x0:al==='right'?x0+g.tw:x0+g.tw/2;
       ctx.font=s+'px Athletic';ctx.fillStyle=tc;ctx.textAlign=al;lines.forEach((l,i)=>ctx.fillText(l,tx,y+c+i*.96*s));ctx.textAlign='left';
       B.hl={x:x0,y,w:g.tw,h:g.th};
       if(g.ch){const oc=tr('cta'),cx=(b.ax===0?bx:b.ax===1?bx+w-g.cw:bx+(w-g.cw)/2)+oc.x,cy=by+g.th+g.cg+oc.y,fg=D.color==='white'?COLS.green:COLS.white,fs=g.ch*.36;
@@ -426,14 +440,26 @@ class Component extends DCLogic {
 
   hitText(e){const sz=this.curSize(),r=this.big.getBoundingClientRect(),f=sz.w/r.width,x=(e.clientX-r.left)*f,y=(e.clientY-r.top)*f,B=this.boxes[kOf(sz)]||{},p=Math.max(8,sz.w*.01);
     for(const id of ['logo','cta','hl']){const b=B[id];if(b&&x>=b.x-p&&x<=b.x+b.w+p&&y>=b.y-p&&y<=b.y+b.h+p)return id;}return null;}
-  onDown=e=>{const el=this.hitText(e);this.setState({selText:el});this.drag={x:e.clientX,y:e.clientY,el};try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}e.currentTarget.style.cursor='grabbing';};
+  onDown=e=>{const el=this.hitText(e);this.setState({selText:el});this.drag={x:e.clientX,y:e.clientY,el};if(el){const sz=this.curSize(),b=(this.boxes[kOf(sz)]||{})[el],ot=(this.ovFor(this.state.design,sz).t||{})[el]||{x:0,y:0};this.drag.raw={x:0,y:0};this.drag.b0=b?{...b}:null;this.drag.o0={...ot};}try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}e.currentTarget.style.cursor='grabbing';};
   onMove=e=>{if(!this.big)return;if(!this.drag){e.currentTarget.style.cursor=this.hitText(e)?'move':'grab';return;}
     const rect=this.big.getBoundingClientRect(),sz=this.curSize(),f=sz.w/rect.width,dx=(e.clientX-this.drag.x)*f,dy=(e.clientY-this.drag.y)*f;
     this.drag={...this.drag,x:e.clientX,y:e.clientY};
-    if(this.drag.el){this.nudge(this.drag.el,dx,dy);return;}
+    if(this.drag.el){if(this.drag.b0){this.drag.raw.x+=dx;this.drag.raw.y+=dy;this.snapMove(this.drag.el,e.altKey);}else this.nudge(this.drag.el,dx,dy);return;}
     const ov=this.ovFor(this.state.design,sz),g=this.geo[this.state.design+'|'+kOf(sz)];if(!g)return;const cl=v=>Math.max(0,Math.min(1,v)),p={fx:ov.fx,fy:ov.fy,zoom:ov.zoom};
     if(Math.abs(sz.w-g.dw)>1)p.fx=cl(ov.fx+dx/(sz.w-g.dw));if(Math.abs(sz.h-g.dh)>1)p.fy=cl(ov.fy+dy/(sz.h-g.dh));this.setOv(p);};
-  onUp=e=>{this.drag=null;if(e.currentTarget)e.currentTarget.style.cursor=this.hitText(e)?'move':'grab';};
+  snapMove(id,off){const sz=this.curSize(),B=this.boxes[kOf(sz)]||{},F=this.frame(sz),d=this.drag,thr=Math.max(6,sz.w*.008),ov=this.ovFor(this.state.design,sz);
+    const bx=d.b0.x+d.raw.x,by=d.b0.y+d.raw.y,w=d.b0.w,h=d.b0.h,xs=[F.x0,(F.x0+F.x1)/2,F.x1],ys=[F.y0,(F.y0+F.y1)/2,F.y1];
+    Object.keys(B).forEach(o=>{if(o===id)return;const q=B[o];xs.push(q.x,q.x+q.w/2,q.x+q.w);ys.push(q.y,q.y+q.h/2,q.y+q.h);});
+    let adx=0,ady=0,gx=null,gy=null,bx0=thr+1,by0=thr+1;
+    if(!off){[bx,bx+w/2,bx+w].forEach(v=>xs.forEach(t=>{const dd=t-v;if(Math.abs(dd)<=thr&&Math.abs(dd)<bx0){bx0=Math.abs(dd);adx=dd;gx=t;}}));
+      [by,by+h/2,by+h].forEach(v=>ys.forEach(t=>{const dd=t-v;if(Math.abs(dd)<=thr&&Math.abs(dd)<by0){by0=Math.abs(dd);ady=dd;gy=t;}}));}
+    this.guides=(gx!==null||gy!==null)?{x:gx,y:gy}:null;
+    this.setOv({t:{...(ov.t||{}),[id]:{x:d.o0.x+d.raw.x+adx,y:d.o0.y+d.raw.y+ady}}});}
+  alignSel(mode){const id=this.state.selText||'hl',sz=this.curSize(),b=(this.boxes[kOf(sz)]||{})[id];if(!b)return;const F=this.frame(sz),ov=this.ovFor(this.state.design,sz),o=(ov.t&&ov.t[id])||{x:0,y:0};let dx=0,dy=0;
+    if(mode==='l')dx=F.x0-b.x;if(mode==='c')dx=(F.x0+F.x1)/2-(b.x+b.w/2);if(mode==='r')dx=F.x1-(b.x+b.w);
+    if(mode==='t')dy=F.y0-b.y;if(mode==='m')dy=(F.y0+F.y1)/2-(b.y+b.h/2);if(mode==='b')dy=F.y1-(b.y+b.h);
+    const patch={t:{...(ov.t||{}),[id]:{x:o.x+dx,y:o.y+dy}}};if(id==='hl'&&'lcr'.includes(mode))patch.al={l:'left',c:'center',r:'right'}[mode];this.setOv(patch);}
+  onUp=e=>{this.drag=null;this.guides=null;this.schedule();if(e.currentTarget)e.currentTarget.style.cursor=this.hitText(e)?'move':'grab';};
   nudge(id,dx,dy){const sz=this.curSize(),ov=this.ovFor(this.state.design,sz),o=(ov.t&&ov.t[id])||{x:0,y:0};this.setOv({t:{...(ov.t||{}),[id]:{x:o.x+dx,y:o.y+dy}}});}
   onKey=e=>{const tg0=e.target&&e.target.tagName;if((e.metaKey||e.ctrlKey)&&(e.key==='z'||e.key==='Z'||e.key==='y')&&tg0!=='INPUT'&&tg0!=='TEXTAREA'&&this.state.authed){e.preventDefault();if(e.key==='y'||e.shiftKey)this.redo();else this.undo();return;}
     const id=this.state.selText;if(!id||!this.state.authed)return;const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA')return;
@@ -505,6 +531,9 @@ class Component extends DCLogic {
       sizeTextOpts:seg((D.ov[kOf(cur)]||{}).text!==false,[[true,'Be'],[false,'Ki']],v=>this.setOv({text:v})),
       sizeCtaOpts:seg((D.ov[kOf(cur)]||{}).cta!==undefined?!!(D.ov[kOf(cur)]||{}).cta:!!cur.cta,[[true,'Be'],[false,'Ki']],v=>this.setOv({cta:v})),
       onCta:e=>this.upd({ctaText:e.target.value}),
+      alignTarget:({hl:'főcím',logo:'logó',cta:'CTA'})[S.selText||'hl'],
+      alignH:[['l','Bal'],['c','Közép'],['r','Jobb']].map(([m,l])=>({label:l,onClick:()=>this.alignSel(m)})),
+      alignV:[['t','Fent'],['m','Közép'],['b','Lent']].map(([m,l])=>({label:l,onClick:()=>this.alignSel(m)})),
       cleanNote:(CLEAN[did]||[]).includes(kOf(cur))?'Export: + „csak kép” változat (szöveg és logó nélkül)':'',
       resetSize:()=>this.setState(s=>{const d=s.design,o={...s.D[d].ov};delete o[kOf(cur)];return {D:{...s.D,[d]:{...s.D[d],ov:o}},selText:null};}),
       tip:S.authed?this.tip():{dot:'',t:'',hasAction:false},
