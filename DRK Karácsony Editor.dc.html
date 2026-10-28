@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+@font-face{font-family:'Athletic';src:url('assets/athletic-pro-bold.otf') format('opentype');font-weight:400 900;font-display:block}
+:root{--bg:#0e0e0e;--panel:#141414;--card:#1e1e1e;--stage:#0a0a0a;--line:#2a2a2a;--fg:#f8f8f8;--fg2:#b4b4b4;--fg3:#7d7d7d;--acc:#e0d1b0}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Montserrat,system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:var(--acc)}a:hover{color:var(--fg)}
+input,textarea,button{font-family:inherit}
+button{white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:28px;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:var(--fg3)}
+input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:var(--fg3)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--fg);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--fg3);margin-top:-7px}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--fg);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--fg3)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+</style>
+</helmet>
+
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg)">
+  <form onSubmit="{{ onLogin }}" style="width:320px;display:flex;flex-direction:column;gap:20px">
+    <img src="assets/drk-white.png" alt="DRK" style="height:40px;align-self:flex-start">
+    <input type="password" placeholder="Jelszó" value="{{ pw }}" onChange="{{ onPw }}" autoFocus="{{ true }}" style="background:transparent;border:0;border-bottom:1px solid var(--fg3);padding:10px 0;color:var(--fg);font-size:16px;outline:none">
+    <button type="submit" style="background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">Belépés</button>
+    <div style="font-size:13px;color:#e07a5f;min-height:18px">{{ pwErr }}</div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ unlocked }}" hint-placeholder-val="{{ true }}">
+<div style="height:100vh;display:grid;grid-template-rows:56px minmax(0,1fr);background:var(--bg)">
+
+  <header style="display:flex;align-items:center;gap:14px;padding:0 20px;border-bottom:1px solid var(--line);overflow-x:auto">
+    <img src="assets/drk-white.png" alt="DRK" style="height:20px;flex:none">
+    <div style="font-family:Athletic;font-size:20px;text-transform:uppercase;white-space:nowrap;flex:none">Karácsony Editor</div>
+    <div style="display:flex;background:var(--card);border-radius:10px;padding:3px;margin-left:12px">
+      <sc-for list="{{ designTabs }}" as="o" hint-placeholder-count="2">
+        <button onClick="{{ o.onClick }}" style="border:0;border-radius:8px;padding:8px 16px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+      </sc-for>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:4px;margin-right:6px">
+      <button onClick="{{ undo }}" title="Visszavonás (Ctrl/Cmd+Z)" style="background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:{{ undoCol }}" style-hover="border-color:var(--fg)">↶ Visszavonás</button>
+      <button onClick="{{ redo }}" title="Újra (Ctrl/Cmd+Shift+Z)" style="background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:{{ redoCol }}" style-hover="border-color:var(--fg)">↷ Újra</button>
+    </div>
+    <button onClick="{{ exportCurrent }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">Ez a méret</button>
+    <button onClick="{{ exportDesign }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">{{ zipOneLabel }}</button>
+    <button onClick="{{ exportAll }}" style="background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer">{{ zipAllLabel }}</button>
+  </header>
+
+  <div style="display:grid;grid-template-columns:292px minmax(0,1fr);min-height:0">
+
+    <aside style="overflow:auto;padding:22px 20px 40px;display:flex;flex-direction:column;gap:28px;background:var(--panel);border-right:1px solid var(--line)">
+
+      <section style="display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Alapkép · {{ designName }}</div>
+        <label onDragOver="{{ onDragOver }}" onDrop="{{ onDropDef }}" style="display:flex;align-items:center;gap:12px;cursor:pointer">
+          <input type="file" accept="image/*" onChange="{{ onFileDef }}" style="display:none">
+          <div style="width:56px;height:56px;border-radius:10px;flex:none;border:1px dashed var(--fg3);background:var(--card);overflow:hidden"><canvas ref="{{ bgThumbRef }}" width="112" height="112" style="display:block;width:100%;height:100%"></canvas></div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:13px;font-weight:600">{{ defLabel }}</div>
+            <div style="font-size:11.5px;color:var(--fg3)">Csere · minden méretre, ahol nincs saját kép</div>
+          </div>
+        </label>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font-size:13px;color:var(--fg2)">Illesztés</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ fitOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Főcím</div><button onClick="{{ resetTexts }}" style="background:none;border:1px solid var(--fg3);color:var(--fg2);border-radius:999px;padding:4px 11px;font-size:11.5px;font-weight:600;cursor:pointer" style-hover="color:var(--fg);border-color:var(--fg)">Alaphelyzet</button></div>
+        <textarea rows="2" placeholder="Főcím" value="{{ d.headline }}" onChange="{{ onHeadline }}" style="background:transparent;border:0;border-bottom:1px solid var(--line);padding:6px 0;color:var(--fg);font-family:Athletic;font-size:24px;line-height:1.05;text-transform:uppercase;outline:none;resize:none"></textarea>
+        <div style="font-size:11.5px;color:var(--fg3);margin-bottom:-8px">CTA gomb szövege</div>
+        <input placeholder="CTA" value="{{ d.ctaText }}" onChange="{{ onCta }}" style="background:transparent;border:0;border-bottom:1px solid var(--line);padding:7px 0;color:var(--fg);font-size:14px;font-weight:600;text-transform:uppercase;outline:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font-size:13px;color:var(--fg2)">Szín</span>
+          <div style="display:flex;gap:10px">
+            <sc-for list="{{ textSw }}" as="o" hint-placeholder-count="4">
+              <button onClick="{{ o.onClick }}" title="{{ o.label }}" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--line);padding:0;cursor:pointer;background:{{ o.css }};outline:{{ o.ring }};outline-offset:3px"></button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="display:flex;justify-content:space-between;font-size:13px;color:var(--fg2)"><span>Méret</span><span style="color:var(--fg);font-weight:600">{{ hsPct }}</span></span>
+          <input type="range" min="0.6" max="1.4" step="0.05" value="{{ d.hs }}" onChange="{{ onHs }}" style="width:100%">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="display:flex;justify-content:space-between;font-size:13px;color:var(--fg2)"><span>Sötétítés / világosítás</span><span style="color:var(--fg);font-weight:600">{{ ovPct }}</span></span>
+          <input type="range" min="0" max="1" step="0.05" value="{{ d.overlay }}" onChange="{{ onOverlay }}" style="width:100%">
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Logó</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font-size:13px;color:var(--fg2)">DRK logó</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ logoOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font-size:13px;color:var(--fg2)">Logó színe</span>
+          <div style="display:flex;gap:10px">
+            <sc-for list="{{ logoSw }}" as="o" hint-placeholder-count="4">
+              <button onClick="{{ o.onClick }}" title="{{ o.label }}" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--line);padding:0;cursor:pointer;background:{{ o.css }};outline:{{ o.ring }};outline-offset:3px"></button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font-size:13px;color:var(--fg2)">AI GENERATED</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ badgeOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <main style="display:grid;grid-template-rows:minmax(0,1fr) auto auto auto;min-width:0;min-height:0">
+      <div onDragOver="{{ onDragOver }}" onDrop="{{ onDropSize }}" style="position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding:28px 28px 44px;background:var(--stage)">
+        <canvas ref="{{ bigRef }}" width="{{ cur.cw }}" height="{{ cur.ch }}" onPointerDown="{{ onDown }}" onPointerMove="{{ onMove }}" onPointerUp="{{ onUp }}" onPointerCancel="{{ onUp }}" style="flex:none;max-width:100%;max-height:100%;box-shadow:0 12px 40px rgba(0,0,0,.35);touch-action:none;background:#000"></canvas>
+        <div style="position:absolute;left:20px;bottom:10px;right:20px;display:flex;justify-content:space-between;gap:16px;font-size:11.5px;color:var(--fg3)">
+          <span style="white-space:nowrap">{{ cur.group }} · {{ cur.label }} · {{ cur.name }}</span>
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Húzd a képet, főcímet, logót · görgő = nagyítás · nyilak</span>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 20px;border-top:1px solid var(--line);flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;background:var(--fg);color:var(--bg);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer">
+          <input type="file" accept="image/*" onChange="{{ onFileSize }}" style="display:none">
+          Saját kép erre a méretre
+        </label>
+        <span style="font-size:12.5px;color:var(--fg2)">{{ ownLabel }}</span>
+        <sc-if value="{{ hasOwn }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ removeOwn }}" style="background:none;border:1px solid var(--fg3);color:var(--fg2);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer" style-hover="color:var(--fg);border-color:var(--fg)">Vissza az alapképre</button>
+        </sc-if>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12.5px;color:var(--fg2)">Nagyítás</span>
+          <input type="range" min="{{ zoomMin }}" max="3" step="0.02" value="{{ zoom }}" onChange="{{ onZoom }}" style="width:130px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12.5px;color:var(--fg2)">Logó ezen a méreten</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ sizeLogoOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12.5px;color:var(--fg2)">Felirat</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ sizeTextOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12.5px;color:var(--fg2)">CTA</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ sizeCtaOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <span style="font-size:12px;color:var(--acc)">{{ cleanNote }}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12.5px;color:var(--fg2)">Igazítás · {{ alignTarget }}</span>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ alignH }}" as="o" hint-placeholder-count="3">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--fg2)" style-hover="color:var(--fg)">{{ o.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;background:var(--card);border-radius:8px;padding:2px">
+            <sc-for list="{{ alignV }}" as="o" hint-placeholder-count="3">
+              <button onClick="{{ o.onClick }}" style="border:0;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--fg2)" style-hover="color:var(--fg)">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <button onClick="{{ resetSize }}" style="background:none;border:0;color:var(--fg3);font-size:12px;cursor:pointer;padding:6px" style-hover="color:var(--fg)">Méret alaphelyzet</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;padding:9px 20px;border-top:1px solid var(--line);min-height:44px">
+        <span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ tip.dot }}"></span>
+        <span style="font-size:13px;color:var(--fg2);flex:1;min-width:0;text-wrap:pretty">{{ tip.t }}</span>
+        <sc-if value="{{ tip.hasAction }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ tip.fn }}" style="background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">{{ tip.label }}</button>
+        </sc-if>
+      </div>
+
+      <div style="border-top:1px solid var(--line);padding:12px 20px 14px;overflow-x:auto">
+        <div style="display:flex;gap:28px;align-items:flex-end;width:max-content">
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">{{ g.label }}</div>
+              <div style="display:flex;gap:14px;align-items:flex-end">
+                <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="4">
+                  <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
+                    <canvas ref="{{ t.ref }}" width="{{ t.tw }}" height="{{ t.th }}" onClick="{{ t.onClick }}" style="display:block;border-radius:3px;cursor:pointer;outline:{{ t.ring }};outline-offset:3px;background:#000"></canvas>
+                    <span style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:{{ t.fg }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.dot }}"></span>{{ t.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PASS='jhlykrvsz26',GREEN='#004e37';
+const SIZES=[
+{g:'PPC',w:1080,h:1080,n:'Feed'},{g:'PPC',w:1440,h:1800,n:'Feed 4:5'},{g:'PPC',w:1440,h:2560,n:'Story / Reels',logoOff:true,story:true},{g:'PPC',w:1200,h:628,n:'Link ad'},{g:'PPC',w:1200,h:1200,n:'Négyzet'},
+{g:'Web',w:840,h:1280,n:'App popup'},{g:'Web',w:420,h:640,n:'App popup kicsi',cta:true},{g:'Web',w:2000,h:800,n:'Desktop popup'},
+{g:'eDM',w:700,h:450,n:'eDM',cta:true},
+{g:'Progi',w:300,h:250,n:'Medium rectangle'},{g:'Progi',w:300,h:600,n:'Half page'},{g:'Progi',w:640,h:360,n:'16:9'},{g:'Progi',w:970,h:250,n:'Billboard'},{g:'Progi',w:320,h:480,n:'Mobil álló'},{g:'Progi',w:1000,h:600,n:'Nagy téglalap'},{g:'Progi',w:1080,h:1920,n:'Story',story:true}];
+const GROUPS=['PPC','Web','eDM','Progi'];
+const CLEAN={b:['2000x800','1080x1920']};
+const OWN_META={hero:{x:.2,y:.2,w:.6,h:.6},hard:[],soft:[{x:.25,y:.25,w:.5,h:.5}]};
+const META_A={ext:{l:1,r:1,b:1,t:0},hero:{x:.19,y:.13,w:.63,h:.34},hard:[{x:.19,y:.13,w:.37,h:.34},{x:.53,y:.28,w:.29,h:.18}],soft:[{x:.43,y:.05,w:.22,h:.22},{x:.15,y:.29,w:.67,h:.3},{x:.11,y:.07,w:.32,h:.22},{x:.55,y:0,w:.37,h:.23},{x:.02,y:.42,w:.24,h:.14},{x:.12,y:.47,w:.54,h:.18},{x:.67,y:.55,w:.33,h:.19},{x:.76,y:.46,w:.24,h:.09}]};
+const META_B={hero:{x:.3,y:.34,w:.48,h:.21},hard:[{x:.31,y:.37,w:.47,h:.19},{x:.22,y:.12,w:.17,h:.16}],soft:[{x:0,y:0,w:.47,h:.47},{x:.33,y:0,w:.15,h:.36},{x:.6,y:0,w:.32,h:.4},{x:.46,y:.25,w:.15,h:.15},{x:0,y:.39,w:.43,h:.42},{x:.42,y:.62,w:.2,h:.16},{x:.3,y:.69,w:.42,h:.14},{x:.88,y:.07,w:.12,h:.17}]};
+const DESIGNS=[{id:'a',label:'Krea2 · Ajándékcsomag',short:'Krea2',src:'uploads/krea2-expand.png',dir:'Krea2_ajandekcsomag',overlay:0,color:'green',logoColor:'green',blurB:1,meta:META_A,zone:{x0:.04,x1:.96,y0:.74,y1:.975}},{id:'b',label:'Krea1 · Otthon',short:'Krea1',src:'uploads/krea1-exp.png',dir:'Krea1_otthon',overlay:0,color:'white',logoColor:'white',blurB:.6,meta:META_B,zone:{x0:.06,x1:.96,y0:.82,y1:.985}}];
+const kOf=s=>s.w+'x'+s.h;
+const isStory=s=>!!s.story;
+const COLS={white:'#f8f8f8',beige:'#e0d1b0',bordo:'#6a1530',black:'#111111',green:GREEN};
+const COLN={white:'Fehér',beige:'Bézs',bordo:'Bordó',black:'Fekete',green:'Zöld'};
+const DEF_HL='AJÁNDÉKOZZ\nHAZAIT';
+const defD=d=>({headline:DEF_HL,ctaText:'VÁSÁROLJ MOST',hs:1,color:d.color,overlay:d.overlay,fit:'auto',logo:true,logoColor:d.logoColor,badge:false,ov:{}});
+const idb={p:null,open(){return this.p||(this.p=new Promise((res,rej)=>{const r=indexedDB.open('drk_xmas',1);r.onupgradeneeded=()=>r.result.createObjectStore('img');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));},
+ async put(k,v){try{const db=await this.open();await new Promise(r=>{const t=db.transaction('img','readwrite');t.objectStore('img').put(v,k);t.oncomplete=r;t.onerror=r;});}catch(e){}},
+ async get(k){try{const db=await this.open();return await new Promise(r=>{const q=db.transaction('img').objectStore('img').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null);});}catch(e){return null;}}};
+const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src;});
+const up=t=>(t||'').toLocaleUpperCase('hu-HU');
+const hexLum=h=>{const n=parseInt(h.slice(1),16);return (0.299*(n>>16&255)+0.587*(n>>8&255)+0.114*(n&255))/255;};
+const MAXPX=1600;
+
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    let saved={};try{saved=JSON.parse(localStorage.getItem('drk_xmas_v6')||'{}');}catch(e){}
+    const D={};DESIGNS.forEach(d=>{D[d.id]=Object.assign(defD(d),(saved.D||{})[d.id]||{});['color','logoColor'].forEach(f=>{if(!['white','green'].includes(D[d.id][f]))D[d.id][f]=defD(d)[f];});});
+    this.state={D,design:saved.design||'a',sel:saved.sel||'1080x1080',authed:sessionStorage.getItem('drk_xmas_auth')==='1',pw:'',pwErr:'',tick:0,selText:null,busy:false,own:{}};
+    this.imgs={def:{},size:{},logo:null,badge:null};this.tints={};this.geo={};this.extCol={};this.boxes={};this.thumbEls={};
+    this.thumbRefs={};SIZES.forEach(sz=>{const k=kOf(sz);this.thumbRefs[k]=el=>{this.thumbEls[k]=el;};});
+    this.bgThumbRef=el=>{this.bgThumb=el;};
+    this.bigRef=el=>{if(el&&el!==this.big){this.big=el;el.addEventListener('wheel',this.onWheel,{passive:false});}if(el)this.big=el;};
+  }
+  async componentDidMount(){
+    this.prevD=this.state.D;
+    window.addEventListener('keydown',this.onKey);
+    this.fontsReady=true;this.bump();
+    const fl=Promise.all([document.fonts.load('100px Athletic','ÁÉ')]).catch(()=>{});
+    await Promise.race([fl,new Promise(r=>setTimeout(r,2500))]);this.fontGen=1;this.bump();fl.then(()=>{this.fontGen=2;this.bump();});
+    const [logo,badge]=await Promise.all([loadImg('assets/drk-logo.png').catch(()=>null),loadImg('assets/ai-badge.png').catch(()=>null)]);
+    this.imgs.logo=logo;this.imgs.badge=badge;this.bump();
+    const own={};
+    for(const d of DESIGNS){
+      const sv=await idb.get('d:'+d.id);
+      this.imgs.def[d.id]=await loadImg(sv||d.src).catch(()=>null);if(this.imgs.def[d.id])this.extCol[d.id]=this.sampleEdge(this.imgs.def[d.id]);this.bump();
+      for(const sz of SIZES){const k=d.id+'|'+kOf(sz),s=await idb.get('s:'+k);if(s){const im=await loadImg(s).catch(()=>null);if(im){this.imgs.size[k]=im;own[k]=im.width+'×'+im.height;}}}
+    }
+    this.setState({own});
+  }
+  undo=()=>{const h=this.hist||[];if(!h.length)return;(this.fut=this.fut||[]).push(this.state.D);this.skipHist=true;this.setState({D:h.pop(),selText:null});};
+  redo=()=>{const f=this.fut||[];if(!f.length)return;(this.hist=this.hist||[]).push(this.state.D);this.skipHist=true;this.setState({D:f.pop(),selText:null});};
+  componentDidUpdate(pp,ps){
+    if(this.prevD===undefined)this.prevD=this.state.D;
+    if(this.state.D!==this.prevD){const old=this.prevD;this.prevD=this.state.D;
+      if(this.skipHist)this.skipHist=false;else{const now=Date.now();this.hist=this.hist||[];const fresh=now-(this.lastPush||0)>600;if(fresh){this.hist.push(old);if(this.hist.length>150)this.hist.shift();}this.lastPush=now;const hadFut=(this.fut||[]).length;this.fut=[];if(fresh||hadFut)this.forceUpdate();}}
+    if(!localStorage.getItem('drk_ovfix7')){localStorage.setItem('drk_ovfix7','1');this.setState(s=>{const D={};Object.keys(s.D).forEach(k=>{D[k]={...s.D[k],overlay:0};});return {D};});return;}
+    this.schedule();
+    clearTimeout(this.saveT);this.saveT=setTimeout(()=>{try{localStorage.setItem('drk_xmas_v6',JSON.stringify({D:this.state.D,design:this.state.design,sel:this.state.sel}));}catch(e){}},300);
+  }
+  componentWillUnmount(){cancelAnimationFrame(this.raf);window.removeEventListener('keydown',this.onKey);if(this.big)this.big.removeEventListener('wheel',this.onWheel);}
+  bump(){this.setState(s=>({tick:s.tick+1}));}
+  schedule(){cancelAnimationFrame(this.raf);this.raf=requestAnimationFrame(()=>this.drawAll());}
+
+  curSize(S=this.state){return SIZES.find(s=>kOf(s)===S.sel)||SIZES[0];}
+  dd(S=this.state){return S.D[S.design];}
+  upd(patch){this.setState(s=>({D:{...s.D,[s.design]:{...s.D[s.design],...patch}}}));}
+  autoPos(sz,fit){return {fit:fit==='blur'?'blur':'cover'};}
+  ovFor(did,sz,S=this.state){const sol=this.solve(did,sz,S);return Object.assign({t:{}},sol.crop,S.D[did].ov[kOf(sz)]||{});}
+  rawOv(s){const d=s.design,k=kOf(this.curSize(s));return {d,k,o:{...(s.D[d].ov[k]||{})}};}
+  setOv(patch){this.setState(s=>{const {d,k,o}=this.rawOv(s);return {D:{...s.D,[d]:{...s.D[d],ov:{...s.D[d].ov,[k]:{...o,...patch}}}}};});}
+  clearCrop(){this.setState(s=>{const {d,k,o}=this.rawOv(s);delete o.fx;delete o.fy;delete o.zoom;return {D:{...s.D,[d]:{...s.D[d],ov:{...s.D[d].ov,[k]:o}}}};});}
+  imgFor(did,key){return this.imgs.size[did+'|'+key]||this.imgs.def[did]||null;}
+  tinted(img,color){const key=img.src+color;if(this.tints[key])return this.tints[key];const sc=Math.min(1,1400/img.width),c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);x.globalCompositeOperation='source-in';x.fillStyle=color;x.fillRect(0,0,c.width,c.height);this.tints[key]=c;return c;}
+  place(img,W,H,fit,z,fx,fy){const sc=fit==='blur'?Math.min(W/img.width,H/img.height)*z:Math.max(W/img.width,H/img.height)*z,dw=img.width*sc,dh=img.height*sc;return {x:(W-dw)*fx,y:(H-dh)*fy,dw,dh,sc};}
+  metrics(text){const k=text+'|'+(this.fontGen||0);this.metC=this.metC||{};if(this.metC[k])return this.metC[k];
+    const c=this.mctx||(this.mctx=document.createElement('canvas').getContext('2d'));c.font='100px Athletic';
+    const lines=up(text).trim().split('\n').map(l=>l.trim()).filter(Boolean),one=lines.join(' ');
+    return this.metC[k]={lines,one,w2:Math.max(0,...lines.map(l=>c.measureText(l).width))/100,w1:c.measureText(one).width/100,capR:(c.measureText('H').actualBoundingBoxAscent||72)/100};}
+  ctaW(t){const c=this.mctx||(this.mctx=document.createElement('canvas').getContext('2d'));c.font='600 100px Montserrat';return c.measureText(up(t||'').trim()).width*1.06;}
+  blockGeom(M,v,s,ctaOn,CW){const c=M.capR*s,th=c+(v.n-1)*.96*s;let w=v.tw*s,h=th,ch=0,cw=0,cg=0;if(ctaOn&&CW){ch=c*1.05;const fs=ch*.36;cw=CW*fs/100+ch*1.3;cg=c*.65;h+=cg+ch;w=Math.max(w,cw);}return {c,w,h,th,tw:v.tw*s,ch,cw,cg};}
+  frame(sz){const W=sz.w,H=sz.h,mn=Math.min(W,H),m=Math.max(8,mn*.065);return sz.story?{m,x0:m,x1:W-m,y0:H*.14,y1:H*.65}:{m,x0:m,x1:W-m,y0:m,y1:H-m};}
+  logoDims(sz){const W=sz.w,H=sz.h,mn=Math.min(W,H),la=this.imgs.logo?this.imgs.logo.width/this.imgs.logo.height:1.81;let lw=Math.max(28,Math.min(mn*.15,W*.16));if(W/H>2.6)lw=Math.max(28,H*.3);return {lw,lh:lw/la,clear:lw*.3};}
+  solve(did,sz,S=this.state){
+    const D=S.D[did],key=kOf(sz),W=sz.w,H=sz.h,img=this.imgFor(did,key),own=!!this.imgs.size[did+'|'+key];
+    const u=D.ov[key]||{},fixed=u.fx!==undefined||u.fy!==undefined||u.zoom!==undefined;
+    const textOn=u.text!==false,ctaOn=textOn&&(u.cta!==undefined?!!u.cta:!!sz.cta),logoOn=!!(u.logo!==undefined?u.logo:(D.logo&&!sz.logoOff))&&!!this.imgs.logo,fit=D.fit==='blur'?'blur':'cover';
+    const ck=[did,key,D.headline,D.hs,logoOn,textOn,ctaOn,D.ctaText,fit,own,img?img.width+'x'+img.height:'-',fixed?[u.zoom,u.fx,u.fy].join(','):'a',this.fontGen||0].join('|');
+    this.solC=this.solC||{};if(this.solC[ck])return this.solC[ck];if(Object.keys(this.solC).length>3000)this.solC={};
+    const A=Math.sqrt(W*H),F=this.frame(sz),meta=own?OWN_META:DESIGNS.find(d=>d.id===did).meta,M=this.metrics(D.headline),L=this.logoDims(sz);
+    const boost=A<700?1.35:A<1000?1.15:1,capIdeal=.062*A*boost,capMin=.024*A*boost,pad=Math.min(W,H)*.02;
+    const inter=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+    const toC=(p,r)=>({x:p.x+r.x*p.dw,y:p.y+r.y*p.dh,w:r.w*p.dw,h:r.h*p.dh});
+    const variants=[];if(textOn&&M.lines.length){variants.push({n:M.lines.length,tw:M.w2});if(M.lines.length>1)variants.push({n:1,tw:M.w1});}
+    const CW=ctaOn?this.ctaW(D.ctaText):0,geom=(v,s)=>this.blockGeom(M,v,s,ctaOn,CW);
+    const u0=(k,d)=>u[k]!==undefined?u[k]:d,crops=[];
+    if(!img){return this.solC[ck]={crop:{zoom:1,fx:.5,fy:.5},blk:null,logo:null,soft:false,logoOn};}
+    const cropScore=p=>{const h=toC(p,meta.hero),vis=inter(h,{x:0,y:0,w:W,h:H}),hv=vis/Math.max(1,h.w*h.h);
+      const hc=W/H>1.3?.6:.8;let sc=Math.min(Math.sqrt(vis/(W*H)),hc)/hc*1.6;if(hv<.86)sc-=(.86-hv)*5;
+      if(sz.story)sc-=(1-inter(h,{x:0,y:H*.14,w:W,h:H*.51})/Math.max(1,vis))*.6;
+      if(p.sc>1.1)sc-=(p.sc-1.1)*.6;return sc;};
+    if(fixed){const z=u0('zoom',1),fx=u0('fx',.5),fy=u0('fy',.5),p=this.place(img,W,H,fit,z,fx,fy);crops.push({z,fx,fy,p,cs:cropScore(p)});}
+    else{const ratio=Math.min(W/img.width,H/img.height)/Math.max(W/img.width,H/img.height),ext=fit==='cover'&&meta.ext;
+      const zs=fit==='blur'?[1]:(ext&&ratio<.97?[ratio,ratio+(1-ratio)*.35,ratio+(1-ratio)*.7]:[]).concat([1,1.15,1.3,1.5,1.75,2,2.3]),st=[0,.125,.25,.375,.5,.625,.75,.875,1];
+      const gapOk=p=>{if(fit!=='cover')return true;const l=p.x>.5,r=p.x+p.dw<W-.5,t=p.y>.5,b=p.y+p.dh<H-.5;if(!(l||r||t||b))return true;return !!ext&&!(l&&!ext.l)&&!(r&&!ext.r)&&!(t&&!ext.t)&&!(b&&!ext.b);};
+      zs.forEach(z=>{const p0=this.place(img,W,H,fit,z,.5,.5),sx=Math.abs(W-p0.dw)>1,sy=Math.abs(H-p0.dh)>1,list=[];
+        (sx?st:[.5]).forEach(fx=>(sy?st:[.5]).forEach(fy=>{const p=this.place(img,W,H,fit,z,fx,fy);if(gapOk(p))list.push({z,fx,fy,p,cs:cropScore(p)});}));
+        list.sort((x,y)=>y.cs-x.cs);crops.push(...list.slice(0,6));});}
+    const anchors=[];[0,.5,1].forEach(ay=>[0,.5,1].forEach(ax=>anchors.push([ax,ay])));
+    const corners=[[0,0],[1,0],[0,1],[1,1]];
+    let best=null;
+    for(const cr of crops){
+      const hard=meta.hard.map(r=>toC(cr.p,r)),soft=meta.soft.map(r=>toC(cr.p,r));
+      const softOv=r=>{let o=0;soft.forEach(h=>o+=inter(r,h));return o/Math.max(1,r.w*r.h);};
+      const hitHard=r=>hard.some(h=>inter(r,h)>0);
+      const logoFor=(hb,ax,ay)=>{if(!logoOn)return {pen:0,r:null};let bl=null;
+        for(const [lx,ly] of corners){const r={x:lx?F.x1-L.lw:F.x0,y:ly?F.y1-L.lh:F.y0,w:L.lw,h:L.lh},q={x:r.x-L.clear,y:r.y-L.clear,w:r.w+2*L.clear,h:r.h+2*L.clear};
+          if(hitHard(q))continue;if(hb&&inter(q,{x:hb.x-pad,y:hb.y-pad,w:hb.w+2*pad,h:hb.h+2*pad})>0)continue;
+          let pen=softOv(q)*.8;if(hb){if(lx===ax)pen-=.05;if(ly===ay)pen+=.03;}
+          if(!bl||pen<bl.pen)bl={pen,r,lx,ly};}
+        return bl||{pen:.6,r:null};};
+      for(const strict of [true,false]){let found=false;
+        for(const v of variants)for(const [ax,ay] of anchors){
+          const at=sv=>{const g=geom(v,sv);return {g,r:{x:F.x0+ax*(F.x1-F.x0-g.w),y:F.y0+ay*(F.y1-F.y0-g.h),w:g.w,h:g.h}};};
+          const ok=sv=>{const {g,r}=at(sv);if(g.w>F.x1-F.x0||g.h>F.y1-F.y0||g.w>W*.86)return false;const q={x:r.x-pad,y:r.y-pad,w:r.w+2*pad,h:r.h+2*pad};
+            if(hitHard(q))return false;if(strict&&softOv(q)>0)return false;return true;};
+          let lo=capMin/M.capR,hi=capIdeal*1.3/M.capR;if(!ok(lo))continue;
+          for(let i=0;i<11;i++){const mid=(lo+hi)/2;if(ok(mid))lo=mid;else hi=mid;}
+          const {g,r}=at(lo),sf=strict?0:softOv(r),lg=logoFor(r,ax,ay),smallOne=v.n===1&&g.c<.065*A?.7:0;
+          const tS=Math.min(g.c,capIdeal*1.3)/capIdeal;
+          const tot=tS*1.5+cr.cs-sf*.9-smallOne-lg.pen+(ax===0?.04:0)+(ay!==.5?.03:0)+(v.n>1?.08:0);
+          if(!best||tot>best.tot)best={tot,crop:{zoom:cr.z,fx:cr.fx,fy:cr.fy},blk:{...r,ax,ay,v,s:lo},logo:lg.r,soft:sf>.03};found=true;}
+        }}
+    if(!best){const cr=crops[0]||{z:1,fx:.5,fy:.5};const v=variants[0];let blk=null;if(v){const sv=capMin/M.capR,g=geom(v,sv);blk={x:F.x0,y:F.y0,w:g.w,h:g.h,ax:0,ay:0,v,s:sv};}
+      best={crop:{zoom:cr.z,fx:cr.fx,fy:cr.fy},blk,logo:logoOn?{x:F.x1-L.lw,y:F.y0,w:L.lw,h:L.lh}:null,soft:true};}
+    if(!best.blk&&logoOn&&!best.logo)best.logo={x:F.x0,y:F.y0,w:L.lw,h:L.lh};
+    best.logoOn=logoOn;best.ctaOn=ctaOn;best.CW=CW;return this.solC[ck]=best;
+  }
+
+  drawAll(){
+    if(!this.fontsReady||!this.state.authed)return;
+    const S=this.state,did=S.design,cur=this.curSize();
+    if(this.bgThumb){const t=this.bgThumb.getContext('2d'),im=this.imgs.def[did];t.clearRect(0,0,112,112);if(im){const sc=Math.max(112/im.width,112/im.height),w=im.width*sc,h=im.height*sc;t.drawImage(im,(112-w)/2,(112-h)/2,w,h);}}
+    if(this.big){const bc=this.big.getContext('2d'),bk=this.big.width/cur.w;this.render(bc,cur,bk,did);
+      const bb=(this.boxes[kOf(cur)]||{})[S.selText];
+      if(bb){bc.save();bc.setTransform(bk,0,0,bk,0,0);bc.strokeStyle='#e0d1b0';bc.lineWidth=2/bk;bc.setLineDash([8/bk,6/bk]);const p=8;bc.strokeRect(bb.x-p,bb.y-p,bb.w+2*p,bb.h+2*p);bc.restore();}
+      if(this.guides){bc.save();bc.setTransform(bk,0,0,bk,0,0);bc.strokeStyle='#ff4fa3';bc.lineWidth=1.5/bk;bc.setLineDash([6/bk,5/bk]);bc.beginPath();if(this.guides.x!==null){bc.moveTo(this.guides.x,0);bc.lineTo(this.guides.x,cur.h);}if(this.guides.y!==null){bc.moveTo(0,this.guides.y);bc.lineTo(cur.w,this.guides.y);}bc.stroke();bc.restore();}
+      if(isStory(cur)){const tz=cur.h*.14,b35=cur.h*.35,b40=cur.h*.4;bc.save();bc.setTransform(bk,0,0,bk,0,0);bc.fillStyle='rgba(224,168,79,.14)';bc.fillRect(0,0,cur.w,tz);bc.fillRect(0,cur.h-b35,cur.w,b35);bc.strokeStyle='rgba(224,168,79,.95)';bc.lineWidth=2/bk;bc.setLineDash([10/bk,8/bk]);bc.beginPath();bc.moveTo(0,tz);bc.lineTo(cur.w,tz);bc.moveTo(0,cur.h-b35);bc.lineTo(cur.w,cur.h-b35);bc.stroke();bc.globalAlpha=.5;bc.beginPath();bc.moveTo(0,cur.h-b40);bc.lineTo(cur.w,cur.h-b40);bc.stroke();bc.globalAlpha=1;bc.setLineDash([]);bc.fillStyle='rgba(224,168,79,1)';bc.font='600 '+(15/bk)+'px Montserrat';bc.fillText('BIZTONSÁGI ZÓNA · felül 14%',16/bk,tz-12/bk);bc.fillText('alul 40% (belső)',16/bk,cur.h-b40-10/bk);bc.fillText('alul 35% (min.)',16/bk,cur.h-b35+26/bk);bc.restore();}}
+    SIZES.forEach(sz=>{const c=this.thumbEls[kOf(sz)];if(c)this.render(c.getContext('2d'),sz,c.width/sz.w,did);});
+  }
+  render(ctx,sz,k,did,clean){
+    const S=this.state,D=S.D[did],W=sz.w,H=sz.h,ov=this.ovFor(did,sz),sol=this.solve(did,sz);
+    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.setTransform(k,0,0,k,0,0);
+    ctx.globalAlpha=1;ctx.filter='none';ctx.globalCompositeOperation='source-over';ctx.setLineDash([]);
+    this.drawPhoto(ctx,sz,ov,k,did,D);if(clean)return;
+    const a=Math.min(1,D.overlay+(sol.soft?.3:0)),oc=hexLum(COLS[D.color])<.45?'248,248,248':'0,0,0',b=sol.blk;
+    if(a>0&&b){let g,rect;
+      if(b.ay===0){g=ctx.createLinearGradient(0,0,0,H*.55);rect=[0,0,W,H*.55];}
+      else if(b.ay===1){g=ctx.createLinearGradient(0,H,0,H*.45);rect=[0,H*.45,W,H*.55];}
+      else if(b.ax===1){g=ctx.createLinearGradient(W,0,W*.4,0);rect=[W*.4,0,W*.6,H];}
+      else{g=ctx.createLinearGradient(0,0,W*.6,0);rect=[0,0,W*.6,H];}
+      g.addColorStop(0,'rgba('+oc+','+a+')');g.addColorStop(1,'rgba('+oc+',0)');ctx.fillStyle=g;ctx.fillRect(...rect);}
+    const pos=this.drawLayout(ctx,sz,ov,D,sol);
+    if(D.badge&&this.imgs.badge){const mn=Math.min(W,H),t=this.tinted(this.imgs.badge,COLS[D.color]),bh=Math.max(9,mn*.021),bw=bh*this.imgs.badge.width/this.imgs.badge.height,F=this.frame(sz);
+      const top=!(b&&b.ay===0),lx=sol.logo&&sol.logo.x>W/2;ctx.drawImage(t,lx&&((sol.logo.y<H/2)===top)?F.x0:F.x1-bw,top?F.y0:F.y1-bh,bw,bh);}
+  }
+  placeholder(ctx,W,H){ctx.fillStyle='#0e0e0e';ctx.fillRect(0,0,W,H);ctx.fillStyle='#4a4a4a';ctx.font='600 '+(Math.min(W,H)*.03)+'px Montserrat';ctx.textAlign='center';ctx.fillText('KÉP BETÖLTÉSE…',W/2,H/2);ctx.textAlign='left';}
+  cover(ctx,img,W,H,fx,fy,zoom,gk){const sc=Math.max(W/img.width,H/img.height)*Math.max(1,zoom),dw=img.width*sc,dh=img.height*sc;const x=(W-dw)*fx,y=(H-dh)*fy;ctx.drawImage(img,x,y,dw,dh);if(gk)this.geo[gk]={dw,dh,x,y};}
+  drawPhoto(ctx,sz,ov,k,did,D){
+    const W=sz.w,H=sz.h,key=kOf(sz),img=this.imgFor(did,key),gk=did+'|'+key;
+    if(!img){this.placeholder(ctx,W,H);this.geo[gk]=null;return;}
+    if(D.fit==='blur'){
+      ctx.save();ctx.filter='blur('+Math.round(Math.max(W,H)*.035*k)+'px) brightness('+DESIGNS.find(d=>d.id===did).blurB+') saturate(1.1)';this.cover(ctx,img,W,H,.5,.5,1.15);ctx.restore();
+      const p=this.place(img,W,H,'blur',ov.zoom,ov.fx,ov.fy),dw=p.dw,dh=p.dh,x=p.x,y=p.y;this.geo[gk]={dw,dh,x,y};
+      const ow=Math.max(1,Math.min(2600,Math.round(dw*k))),oh=Math.max(1,Math.round(ow*dh/dw)),c=document.createElement('canvas');c.width=ow;c.height=oh;const x2=c.getContext('2d');x2.drawImage(img,0,0,ow,oh);
+      x2.globalCompositeOperation='destination-in';const f=.09;
+      const fade=(a,b,vert)=>{if(!a&&!b)return;const g=vert?x2.createLinearGradient(0,0,0,oh):x2.createLinearGradient(0,0,ow,0);g.addColorStop(0,a?'rgba(0,0,0,0)':'#000');g.addColorStop(a?f:0,'#000');g.addColorStop(b?1-f:1,'#000');g.addColorStop(1,b?'rgba(0,0,0,0)':'#000');x2.fillStyle=g;x2.fillRect(0,0,ow,oh);};
+      fade(x>1,x+dw<W-1,false);fade(y>1,y+dh<H-1,true);
+      ctx.drawImage(c,x,y,dw,dh);return;}
+    const p=this.place(img,W,H,'cover',ov.zoom,ov.fx,ov.fy);this.geo[gk]={dw:p.dw,dh:p.dh,x:p.x,y:p.y};
+    if(p.x>.5||p.y>.5||p.x+p.dw<W-.5||p.y+p.dh<H-.5){ctx.fillStyle=this.extCol[did]||'#e9dccb';ctx.fillRect(0,0,W,H);this.featherDraw(ctx,img,p,W,H,k,.1);}
+    else ctx.drawImage(img,p.x,p.y,p.dw,p.dh);
+  }
+  featherDraw(ctx,img,p,W,H,k,f){const {x,y,dw,dh}=p,ow=Math.max(1,Math.min(2600,Math.round(dw*k))),oh=Math.max(1,Math.round(ow*dh/dw)),c=document.createElement('canvas');c.width=ow;c.height=oh;const x2=c.getContext('2d');x2.drawImage(img,0,0,ow,oh);x2.globalCompositeOperation='destination-in';
+    const fade=(a,b,vert)=>{if(!a&&!b)return;const g=vert?x2.createLinearGradient(0,0,0,oh):x2.createLinearGradient(0,0,ow,0);g.addColorStop(0,a?'rgba(0,0,0,0)':'#000');g.addColorStop(a?f:0,'#000');g.addColorStop(b?1-f:1,'#000');g.addColorStop(1,b?'rgba(0,0,0,0)':'#000');x2.fillStyle=g;x2.fillRect(0,0,ow,oh);};
+    fade(x>.5,x+dw<W-.5,false);fade(y>.5,y+dh<H-.5,true);ctx.drawImage(c,x,y,dw,dh);}
+  sampleEdge(img){try{const c=document.createElement('canvas');c.width=48;c.height=48;const x=c.getContext('2d');x.drawImage(img,0,0,48,48);const d=x.getImageData(0,44,48,4).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}return 'rgb('+Math.round(r/n)+','+Math.round(g/n)+','+Math.round(b/n)+')';}catch(e){return null;}}
+
+  drawLayout(ctx,sz,ov,D,sol){
+    const W=sz.w,H=sz.h,tc=COLS[D.color],logo=this.imgs.logo,T=ov.t||{},tr=id=>T[id]||{x:0,y:0},B={},M=this.metrics(D.headline),b=sol.blk;
+    ctx.textBaseline='alphabetic';
+    if(b){const s=b.s*D.hs,g=this.blockGeom(M,b.v,s,sol.ctaOn,sol.CW),c=g.c,lines=b.v.n>1?M.lines:[M.one],w=g.w,h=g.h;
+      const bx=b.x+b.ax*(b.w-w),by=b.y+b.ay*(b.h-h),o=tr('hl'),al=ov.al||(b.ax===0?'left':b.ax===1?'right':'center');
+      const x0=(b.ax===0?bx:b.ax===1?bx+w-g.tw:bx+(w-g.tw)/2)+o.x,y=by+o.y,tx=al==='left'?x0:al==='right'?x0+g.tw:x0+g.tw/2;
+      ctx.font=s+'px Athletic';ctx.fillStyle=tc;ctx.textAlign=al;lines.forEach((l,i)=>ctx.fillText(l,tx,y+c+i*.96*s));ctx.textAlign='left';
+      B.hl={x:x0,y,w:g.tw,h:g.th};
+      if(g.ch){const oc=tr('cta'),cx=(b.ax===0?bx:b.ax===1?bx+w-g.cw:bx+(w-g.cw)/2)+oc.x,cy=by+g.th+g.cg+oc.y,fg=D.color==='white'?COLS.green:COLS.white,fs=g.ch*.36;
+        ctx.fillStyle=tc;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(cx,cy,g.cw,g.ch,g.ch*.12);else ctx.rect(cx,cy,g.cw,g.ch);ctx.fill();
+        ctx.font='600 '+fs+'px Montserrat';try{ctx.letterSpacing=(fs*.06)+'px';}catch(e){}ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(up(D.ctaText).trim(),cx+g.cw/2,cy+g.ch/2+fs*.04);ctx.textBaseline='alphabetic';ctx.textAlign='left';try{ctx.letterSpacing='0px';}catch(e){}
+        B.cta={x:cx,y:cy,w:g.cw,h:g.ch};}}
+    if(sol.logoOn&&logo&&sol.logo){const r=sol.logo,o=tr('logo'),x=r.x+o.x,y=r.y+o.y;ctx.drawImage(this.tinted(logo,COLS[D.logoColor]),x,y,r.w,r.h);B.logo={x,y,w:r.w,h:r.h};}
+    this.boxes[kOf(sz)]=B;return {};
+  }
+
+  hitText(e){const sz=this.curSize(),r=this.big.getBoundingClientRect(),f=sz.w/r.width,x=(e.clientX-r.left)*f,y=(e.clientY-r.top)*f,B=this.boxes[kOf(sz)]||{},p=Math.max(8,sz.w*.01);
+    for(const id of ['logo','cta','hl']){const b=B[id];if(b&&x>=b.x-p&&x<=b.x+b.w+p&&y>=b.y-p&&y<=b.y+b.h+p)return id;}return null;}
+  onDown=e=>{const el=this.hitText(e);this.setState({selText:el});this.drag={x:e.clientX,y:e.clientY,el};if(el){const sz=this.curSize(),b=(this.boxes[kOf(sz)]||{})[el],ot=(this.ovFor(this.state.design,sz).t||{})[el]||{x:0,y:0};this.drag.raw={x:0,y:0};this.drag.b0=b?{...b}:null;this.drag.o0={...ot};}try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}e.currentTarget.style.cursor='grabbing';};
+  onMove=e=>{if(!this.big)return;if(!this.drag){e.currentTarget.style.cursor=this.hitText(e)?'move':'grab';return;}
+    const rect=this.big.getBoundingClientRect(),sz=this.curSize(),f=sz.w/rect.width,dx=(e.clientX-this.drag.x)*f,dy=(e.clientY-this.drag.y)*f;
+    this.drag={...this.drag,x:e.clientX,y:e.clientY};
+    if(this.drag.el){if(this.drag.b0){this.drag.raw.x+=dx;this.drag.raw.y+=dy;this.snapMove(this.drag.el,e.altKey);}else this.nudge(this.drag.el,dx,dy);return;}
+    const ov=this.ovFor(this.state.design,sz),g=this.geo[this.state.design+'|'+kOf(sz)];if(!g)return;const cl=v=>Math.max(0,Math.min(1,v)),p={fx:ov.fx,fy:ov.fy,zoom:ov.zoom};
+    if(Math.abs(sz.w-g.dw)>1)p.fx=cl(ov.fx+dx/(sz.w-g.dw));if(Math.abs(sz.h-g.dh)>1)p.fy=cl(ov.fy+dy/(sz.h-g.dh));this.setOv(p);};
+  snapMove(id,off){const sz=this.curSize(),B=this.boxes[kOf(sz)]||{},F=this.frame(sz),d=this.drag,thr=Math.max(6,sz.w*.008),ov=this.ovFor(this.state.design,sz);
+    const bx=d.b0.x+d.raw.x,by=d.b0.y+d.raw.y,w=d.b0.w,h=d.b0.h,xs=[F.x0,(F.x0+F.x1)/2,F.x1],ys=[F.y0,(F.y0+F.y1)/2,F.y1];
+    Object.keys(B).forEach(o=>{if(o===id)return;const q=B[o];xs.push(q.x,q.x+q.w/2,q.x+q.w);ys.push(q.y,q.y+q.h/2,q.y+q.h);});
+    let adx=0,ady=0,gx=null,gy=null,bx0=thr+1,by0=thr+1;
+    if(!off){[bx,bx+w/2,bx+w].forEach(v=>xs.forEach(t=>{const dd=t-v;if(Math.abs(dd)<=thr&&Math.abs(dd)<bx0){bx0=Math.abs(dd);adx=dd;gx=t;}}));
+      [by,by+h/2,by+h].forEach(v=>ys.forEach(t=>{const dd=t-v;if(Math.abs(dd)<=thr&&Math.abs(dd)<by0){by0=Math.abs(dd);ady=dd;gy=t;}}));}
+    this.guides=(gx!==null||gy!==null)?{x:gx,y:gy}:null;
+    this.setOv({t:{...(ov.t||{}),[id]:{x:d.o0.x+d.raw.x+adx,y:d.o0.y+d.raw.y+ady}}});}
+  alignSel(mode){const id=this.state.selText||'hl',sz=this.curSize(),b=(this.boxes[kOf(sz)]||{})[id];if(!b)return;const F=this.frame(sz),ov=this.ovFor(this.state.design,sz),o=(ov.t&&ov.t[id])||{x:0,y:0};let dx=0,dy=0;
+    if(mode==='l')dx=F.x0-b.x;if(mode==='c')dx=(F.x0+F.x1)/2-(b.x+b.w/2);if(mode==='r')dx=F.x1-(b.x+b.w);
+    if(mode==='t')dy=F.y0-b.y;if(mode==='m')dy=(F.y0+F.y1)/2-(b.y+b.h/2);if(mode==='b')dy=F.y1-(b.y+b.h);
+    const patch={t:{...(ov.t||{}),[id]:{x:o.x+dx,y:o.y+dy}}};if(id==='hl'&&'lcr'.includes(mode))patch.al={l:'left',c:'center',r:'right'}[mode];this.setOv(patch);}
+  onUp=e=>{this.drag=null;this.guides=null;this.schedule();if(e.currentTarget)e.currentTarget.style.cursor=this.hitText(e)?'move':'grab';};
+  nudge(id,dx,dy){const sz=this.curSize(),ov=this.ovFor(this.state.design,sz),o=(ov.t&&ov.t[id])||{x:0,y:0};this.setOv({t:{...(ov.t||{}),[id]:{x:o.x+dx,y:o.y+dy}}});}
+  onKey=e=>{const tg0=e.target&&e.target.tagName;if((e.metaKey||e.ctrlKey)&&(e.key==='z'||e.key==='Z'||e.key==='y')&&tg0!=='INPUT'&&tg0!=='TEXTAREA'&&this.state.authed){e.preventDefault();if(e.key==='y'||e.shiftKey)this.redo();else this.undo();return;}
+    const id=this.state.selText;if(!id||!this.state.authed)return;const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA')return;
+    const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d)return;e.preventDefault();const st=this.curSize().h*(e.shiftKey?.03:.005);this.nudge(id,d[0]*st,d[1]*st);};
+  zoomMin(){const D=this.dd(),sz=this.curSize(),did=this.state.design,img=this.imgFor(did,kOf(sz));if(D.fit==='blur')return .3;if(img&&!this.imgs.size[did+'|'+kOf(sz)]&&DESIGNS.find(d=>d.id===did).meta.ext)return +(Math.min(sz.w/img.width,sz.h/img.height)/Math.max(sz.w/img.width,sz.h/img.height)).toFixed(3);return 1;}
+  onWheel=e=>{e.preventDefault();const sz=this.curSize(),ov=this.ovFor(this.state.design,sz);this.setOv({fx:ov.fx,fy:ov.fy,zoom:Math.max(this.zoomMin(),Math.min(3,ov.zoom*(1-e.deltaY*.0012)))});};
+  onDragOver=e=>{e.preventDefault();};
+
+  readFile(file,scope){
+    if(!file||!file.type.startsWith('image/'))return;const did=this.state.design,key=kOf(this.curSize());
+    const fr=new FileReader();fr.onload=async()=>{let src=fr.result,img=await loadImg(src);
+      const max=3200;if(Math.max(img.width,img.height)>max){const sc=max/Math.max(img.width,img.height),c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext('2d').drawImage(img,0,0,c.width,c.height);src=file.type==='image/png'?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.92);img=await loadImg(src);}
+      if(scope==='size'){const k=did+'|'+key;this.imgs.size[k]=img;idb.put('s:'+k,src);this.setState(s=>({own:{...s.own,[k]:img.width+'×'+img.height}}));this.clearCrop();}
+      else{this.imgs.def[did]=img;this.extCol[did]=this.sampleEdge(img);idb.put('d:'+did,src);this.bump();}};
+    fr.readAsDataURL(file);}
+  removeOwn=()=>{const k=this.state.design+'|'+kOf(this.curSize());delete this.imgs.size[k];idb.put('s:'+k,null);this.setState(s=>{const o={...s.own};delete o[k];return {own:o};});};
+
+  blobFor(did,sz,clean){const c=document.createElement('canvas');c.width=sz.w;c.height=sz.h;this.render(c.getContext('2d'),sz,1,did,clean);return new Promise(r=>c.toBlob(r,'image/png'));}
+  fname(did,sz){return `DRK_${DESIGNS.find(d=>d.id===did).short}_${sz.w}x${sz.h}.png`;}
+  dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
+  async run(fn){if(this.state.busy)return;this.setState({busy:true});try{await fn();}catch(e){}this.setState({busy:false});}
+  zipFor(ids,name){return this.run(async()=>{const z=new window.JSZip();for(const id of ids){const dn=DESIGNS.find(d=>d.id===id);for(const sz of SIZES){z.folder(dn.dir).file(this.fname(id,sz),await this.blobFor(id,sz));if((CLEAN[id]||[]).includes(kOf(sz)))z.folder(dn.dir).file(this.fname(id,sz).replace('.png','_csak-kep.png'),await this.blobFor(id,sz,true));}}this.dl(await z.generateAsync({type:'blob'}),name);});}
+
+  tip(){
+    const S=this.state,did=S.design,sz=this.curSize(),key=kOf(sz),D=this.dd(),img=this.imgFor(did,key),ov=this.ovFor(did,sz);
+    const mk=(tone,t,label,fn)=>({dot:tone==='warn'?'#e0a84f':tone==='ok'?'#5fbf8f':'var(--fg3)',t,hasAction:!!fn,label,fn});
+    if(!img)return mk('info','Kép betöltése…');
+    const ir=img.width/img.height,q=sz.w/sz.h,own=!!this.imgs.size[did+'|'+key];
+    const fitE=this.autoPos(sz,D.fit).fit;if(fitE==='cover'&&ov.zoom<=1.05&&Math.min(q/ir,ir/q)<.6)return mk('warn',`Erős vágás ezen a méreten (${Math.round(Math.min(q/ir,ir/q)*100)}% látszik). Húzd a képet, vagy tölts fel ehhez a mérethez más arányú képet.`,'Elmosott kitöltés',()=>this.upd({fit:'blur'}));
+    const need=Math.max(sz.w/img.width,sz.h/img.height)*(fitE==='cover'?ov.zoom:1);
+    if(need>1.5)return mk('warn',`Alacsony felbontás${own?'':' (alapkép)'}: ${img.width}×${img.height} — nagyobb forráskép ajánlott.`);
+    if(isStory(sz))return mk('info','Story/Reels: a főcím és a logó a biztonsági zónán belül marad (felül 14%, alul 40%).');
+    return mk('ok',own?'Saját kép ehhez a mérethez.':'Alapkép használatban — ha rosszul vág, tölts fel saját képet erre a méretre.');
+  }
+
+  renderVals(){
+    const S=this.state,did=S.design,D=this.dd(),cur=this.curSize(),dn=DESIGNS.find(d=>d.id===did),ov=this.ovFor(did,cur),ownKey=did+'|'+kOf(cur);
+    const seg=(cur2,list,fn)=>list.map(([v,label])=>({label,bg:cur2===v?'var(--fg)':'transparent',fg:cur2===v?'var(--bg)':'var(--fg2)',onClick:()=>fn(v)}));
+    const sw=(val,keys,fn)=>keys.map(k=>({label:COLN[k],css:COLS[k],ring:val===k?'2px solid var(--fg)':'2px solid transparent',onClick:()=>fn(k)}));
+    const sizeLogo=ov.logo!==undefined?ov.logo:(D.logo&&!cur.logoOff);
+    const cs=Math.min(1,MAXPX/Math.max(cur.w,cur.h));
+    return {
+      d:D,locked:!S.authed,unlocked:S.authed,pw:S.pw,pwErr:S.pwErr,
+      onPw:e=>this.setState({pw:e.target.value,pwErr:''}),
+      onLogin:e=>{e.preventDefault();if(S.pw===PASS){sessionStorage.setItem('drk_xmas_auth','1');this.setState({authed:true,pw:''});}else this.setState({pwErr:'Hibás jelszó.'});},
+      designTabs:[...DESIGNS].reverse().map(d=>({label:d.label,bg:did===d.id?'var(--fg)':'transparent',fg:did===d.id?'var(--bg)':'var(--fg2)',onClick:()=>this.setState({design:d.id,selText:null})})),
+      designName:dn.label,
+      undo:this.undo,redo:this.redo,undoCol:(this.hist||[]).length?'var(--fg)':'var(--fg3)',redoCol:(this.fut||[]).length?'var(--fg)':'var(--fg3)',
+      zipOneLabel:S.busy?'Készül…':`${dn.short} · ZIP`,zipAllLabel:S.busy?'Készül…':'Mindkettő · ZIP',
+      exportCurrent:()=>this.run(async()=>{this.dl(await this.blobFor(did,cur),this.fname(did,cur));if((CLEAN[did]||[]).includes(kOf(cur))){await new Promise(r=>setTimeout(r,400));this.dl(await this.blobFor(did,cur,true),this.fname(did,cur).replace('.png','_csak-kep.png'));}}),
+      exportDesign:()=>this.zipFor([did],`DRK_${dn.short}_${SIZES.length}_meret.zip`),
+      exportAll:()=>this.zipFor(DESIGNS.map(d=>d.id),`DRK_karacsony_${DESIGNS.length*SIZES.length}.zip`),
+      bgThumbRef:this.bgThumbRef,onFileDef:e=>{this.readFile(e.target.files[0],'def');e.target.value='';},onDropDef:e=>{e.preventDefault();e.stopPropagation();this.readFile(e.dataTransfer.files[0],'def');},onDragOver:this.onDragOver,
+      defLabel:this.imgs.def[did]?`${this.imgs.def[did].width}×${this.imgs.def[did].height}`:'Kép feltöltése',
+      fitOpts:seg(D.fit,[['auto','Auto'],['blur','Elmosott']],v=>this.upd({fit:v})),
+      onHeadline:e=>this.upd({headline:e.target.value}),onHs:e=>this.upd({hs:+e.target.value}),onOverlay:e=>this.upd({overlay:+e.target.value}),
+      hsPct:Math.round(D.hs*100)+'%',ovPct:Math.round(D.overlay*100)+'%',
+      resetTexts:()=>{this.upd({headline:DEF_HL,hs:1});this.setState({selText:null});this.setState(s=>{const d=s.design,ovs={};Object.keys(s.D[d].ov).forEach(k=>{const o={...s.D[d].ov[k]};delete o.t;ovs[k]=o;});return {D:{...s.D,[d]:{...s.D[d],ov:ovs}}};});},
+      textSw:sw(D.color,['white','green'],k=>this.upd({color:k})),
+      logoSw:sw(D.logoColor,['white','green'],k=>this.upd({logoColor:k})),
+      logoOpts:seg(D.logo,[[true,'Be'],[false,'Ki']],v=>this.upd({logo:v})),
+      badgeOpts:seg(D.badge,[[false,'Ki'],[true,'Be']],v=>this.upd({badge:v})),
+      cur:{cw:Math.round(cur.w*cs),ch:Math.round(cur.h*cs),label:`${cur.w} × ${cur.h}`,name:cur.n,group:cur.g},
+      bigRef:this.bigRef,onDown:this.onDown,onMove:this.onMove,onUp:this.onUp,onDropSize:e=>{e.preventDefault();this.readFile(e.dataTransfer.files[0],'size');},
+      onFileSize:e=>{this.readFile(e.target.files[0],'size');e.target.value='';},
+      hasOwn:!!S.own[ownKey],ownLabel:S.own[ownKey]?`Saját kép · ${S.own[ownKey]}`:'Alapképet használ',removeOwn:this.removeOwn,
+      zoom:ov.zoom,zoomMin:this.zoomMin(),onZoom:e=>this.setOv({fx:ov.fx,fy:ov.fy,zoom:+e.target.value}),
+      sizeLogoOpts:seg(sizeLogo,[[true,'Be'],[false,'Ki']],v=>this.setOv({logo:v})),
+      sizeTextOpts:seg((D.ov[kOf(cur)]||{}).text!==false,[[true,'Be'],[false,'Ki']],v=>this.setOv({text:v})),
+      sizeCtaOpts:seg((D.ov[kOf(cur)]||{}).cta!==undefined?!!(D.ov[kOf(cur)]||{}).cta:!!cur.cta,[[true,'Be'],[false,'Ki']],v=>this.setOv({cta:v})),
+      onCta:e=>this.upd({ctaText:e.target.value}),
+      alignTarget:({hl:'főcím',logo:'logó',cta:'CTA'})[S.selText||'hl'],
+      alignH:[['l','Bal'],['c','Közép'],['r','Jobb']].map(([m,l])=>({label:l,onClick:()=>this.alignSel(m)})),
+      alignV:[['t','Fent'],['m','Közép'],['b','Lent']].map(([m,l])=>({label:l,onClick:()=>this.alignSel(m)})),
+      cleanNote:(CLEAN[did]||[]).includes(kOf(cur))?'Export: + „csak kép” változat (szöveg és logó nélkül)':'',
+      resetSize:()=>this.setState(s=>{const d=s.design,o={...s.D[d].ov};delete o[kOf(cur)];return {D:{...s.D,[d]:{...s.D[d],ov:o}},selText:null};}),
+      tip:S.authed?this.tip():{dot:'',t:'',hasAction:false},
+      groups:GROUPS.map(g=>({label:g,items:SIZES.filter(sz=>sz.g===g).map(sz=>{const k=kOf(sz),sc=Math.min(80/sz.h,220/sz.w);return {label:`${sz.w}×${sz.h}`,tw:Math.round(sz.w*sc),th:Math.round(sz.h*sc),ref:this.thumbRefs[k],ring:S.sel===k?'2px solid var(--fg)':'2px solid transparent',fg:S.sel===k?'var(--fg)':'var(--fg3)',dot:S.own[did+'|'+k]?'var(--acc)':'transparent',onClick:()=>this.setState({sel:k,selText:null})};})}))
+    };
+  }
+}
+</script>
+</body>
+</html>
