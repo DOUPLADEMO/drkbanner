@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+@font-face{font-family:'Athletic';src:url('assets/athletic-pro-bold.otf') format('opentype');font-weight:400 900;font-display:block}
+:root{--bg:#0e0e0e;--panel:#141414;--card:#1e1e1e;--stage:#0a0a0a;--line:#2a2a2a;--fg:#f8f8f8;--fg2:#b4b4b4;--fg3:#7d7d7d;--acc:#e0d1b0}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Montserrat,system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:var(--acc)}a:hover{color:var(--fg)}
+input,textarea,button{font-family:inherit}
+button{white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:28px;margin:0;cursor:pointer;width:100%}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:var(--fg3)}
+input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:var(--fg3)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--fg);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--fg3);margin-top:-7px}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--fg);border:3px solid var(--panel);box-shadow:0 0 0 1px var(--fg3)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+</style>
+</helmet>
+
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg)">
+  <form onSubmit="{{ onLogin }}" style="width:320px;display:flex;flex-direction:column;gap:20px">
+    <img src="assets/drk-white.png" alt="DRK" style="height:40px;align-self:flex-start">
+    <input type="password" placeholder="Jelszó" value="{{ pw }}" onChange="{{ onPw }}" autoFocus="{{ true }}" style="background:transparent;border:0;border-bottom:1px solid var(--fg3);padding:10px 0;color:var(--fg);font-size:16px;outline:none">
+    <button type="submit" style="background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">Belépés</button>
+    <div style="font-size:13px;color:#e07a5f;min-height:18px">{{ pwErr }}</div>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ unlocked }}" hint-placeholder-val="{{ true }}">
+<div style="height:100vh;display:grid;grid-template-rows:56px minmax(0,1fr);background:var(--bg)">
+
+  <header style="display:flex;align-items:center;gap:14px;padding:0 20px;border-bottom:1px solid var(--line);overflow-x:auto">
+    <img src="assets/drk-white.png" alt="DRK" style="height:20px;flex:none">
+    <div style="font-family:Athletic;font-size:20px;text-transform:uppercase;white-space:nowrap;flex:none">Ajándékozz hazait · Szett Editor</div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:4px;margin-right:6px">
+      <button onClick="{{ undo }}" title="Visszavonás (Ctrl/Cmd+Z)" style="background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:{{ undoCol }}" style-hover="border-color:var(--fg)">↶ Visszavonás</button>
+      <button onClick="{{ redo }}" title="Újra (Ctrl/Cmd+Shift+Z)" style="background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:{{ redoCol }}" style-hover="border-color:var(--fg)">↷ Újra</button>
+    </div>
+    <button onClick="{{ exportCurrent }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">Ez a méret · PNG</button>
+    <button onClick="{{ exportSet }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">{{ zipSetLabel }}</button>
+    <button onClick="{{ exportAll }}" style="background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer">{{ zipLabel }}</button>
+  </header>
+
+  <div style="display:grid;grid-template-columns:292px minmax(0,1fr) 300px;min-height:0">
+
+    <aside style="background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:22px">
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Szalag kattintásra</div>
+        <div style="display:flex;background:var(--card);border-radius:10px;padding:3px">
+          <sc-for list="{{ modeOpts }}" as="o" hint-placeholder-count="2">
+            <button onClick="{{ o.onClick }}" style="flex:1;border:0;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;line-height:1.45;color:var(--fg3)">{{ modeHint }}</div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Szett · egy kép = egy szett</div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+          <sc-for list="{{ setTiles }}" as="t" hint-placeholder-count="5">
+            <button onClick="{{ t.pick }}" title="{{ t.name }}" style="border:0;padding:6px;border-radius:10px;cursor:pointer;background:#ECD8C4;outline:{{ t.ring }};outline-offset:2px;height:88px;display:flex;align-items:center;justify-content:center">
+              <img src="{{ t.src }}" alt="{{ t.name }}" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Szalagok · masni / vastag</div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+          <sc-for list="{{ ribThick }}" as="t" hint-placeholder-count="10">
+            <button onClick="{{ t.pick }}" title="{{ t.name }}" style="border:0;padding:5px;border-radius:10px;cursor:pointer;background:#ECD8C4;outline:{{ t.ring }};outline-offset:2px;height:66px;display:flex;align-items:center;justify-content:center">
+              <img src="{{ t.src }}" alt="{{ t.name }}" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
+            </button>
+          </sc-for>
+        </div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);margin-top:6px">Szalagok · vékony</div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+          <sc-for list="{{ ribThin }}" as="t" hint-placeholder-count="10">
+            <button onClick="{{ t.pick }}" title="{{ t.name }}" style="border:0;padding:5px;border-radius:10px;cursor:pointer;background:#ECD8C4;outline:{{ t.ring }};outline-offset:2px;height:40px;display:flex;align-items:center;justify-content:center">
+              <img src="{{ t.src }}" alt="{{ t.name }}" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Egyéb</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button onClick="{{ addText }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">+ Szöveg</button>
+          <button onClick="{{ addLogo }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">+ Logó</button>
+          <button onClick="{{ toggleShadow }}" style="background:{{ shadowBg }};color:{{ shadowFg }};border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer">Árnyék: {{ shadowLabel }}</button>
+          <button onClick="{{ autoLayout }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">Automatikus elrendezés</button>
+        </div>
+      </section>
+    </aside>
+
+    <main style="display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0;background:var(--stage)">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;overflow-x:auto;border-bottom:1px solid var(--line)">
+        <div style="display:flex;background:var(--card);border-radius:10px;padding:3px">
+          <sc-for list="{{ sizeTabs }}" as="o" hint-placeholder-count="5">
+            <button onClick="{{ o.onClick }}" style="border:0;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{ toggleOverview }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">{{ ovLabel }}</button>
+        <div style="font-size:12px;color:var(--fg3);white-space:nowrap">{{ sizeNote }}</div>
+      </div>
+      <div ref="{{ areaRef }}" style="display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;overflow:hidden;padding:8px">
+        <sc-if value="{{ overview }}" hint-placeholder-val="{{ false }}">
+        <div style="width:100%;height:100%;overflow:auto;padding:12px 16px;display:flex;flex-direction:column;gap:26px">
+          <sc-for list="{{ ovRows }}" as="r" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">{{ r.name }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end">
+                <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5">
+                  <button onClick="{{ c.onClick }}" style="background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:flex-start;color:var(--fg2);font-size:11.5px;font-weight:600">
+                    <img src="{{ c.src }}" alt="" draggable="false" style="display:block;width:{{ c.w }}px;height:{{ c.h }}px;box-shadow:0 0 0 1px var(--line)">
+                    <span>{{ c.label }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ showStage }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;width:{{ dw }}px;height:{{ dh }}px;flex:none;box-shadow:0 0 0 1px var(--line),0 18px 60px rgba(0,0,0,.5)">
+          <canvas ref="{{ canvasRef }}" onPointerDown="{{ onStageDown }}" style="display:block;width:{{ dw }}px;height:{{ dh }}px;touch-action:none;cursor:default"></canvas>
+          <div style="position:absolute;inset:0;pointer-events:none">
+            <sc-for list="{{ guideLines }}" as="g" hint-placeholder-count="0">
+              <div style="position:absolute;left:{{ g.left }}px;top:{{ g.top }}px;width:{{ g.w }}px;height:{{ g.h }}px;background:#ff3d9a"></div>
+            </sc-for>
+            <sc-for list="{{ selBoxes }}" as="b" hint-placeholder-count="0">
+              <div style="position:absolute;left:{{ b.left }}px;top:{{ b.top }}px;width:{{ b.w }}px;height:{{ b.h }}px;transform:translate(-50%,-50%) rotate({{ b.rot }}deg);outline:1.5px solid #5ab0ff">
+                <sc-if value="{{ b.single }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:contents">
+                    <div style="position:absolute;left:50%;top:-30px;width:1.5px;height:30px;background:#5ab0ff;transform:translateX(-50%)"></div>
+                    <div onPointerDown="{{ b.onRotate }}" title="Forgatás" style="position:absolute;left:50%;top:-42px;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #5ab0ff;transform:translateX(-50%);pointer-events:auto;cursor:grab"></div>
+                    <div onPointerDown="{{ b.onScale }}" title="Méretezés" style="position:absolute;right:-9px;bottom:-9px;width:16px;height:16px;background:#fff;border:2px solid #5ab0ff;pointer-events:auto;cursor:nwse-resize"></div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+    </main>
+
+    <aside style="background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:22px">
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Rétegek (felül = elöl)</div>
+          <button onClick="{{ selectAll }}" style="background:none;border:0;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer;padding:0">Mind kijelöl</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <sc-for list="{{ layerRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.onSel }}" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;cursor:pointer;background:{{ r.bg }};opacity:{{ r.op }}">
+              <div style="width:34px;height:26px;border-radius:5px;background:#ECD8C4;display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden">
+                <sc-if value="{{ r.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ r.src }}" alt="" draggable="false" style="max-width:90%;max-height:90%;object-fit:contain"></sc-if>
+                <sc-if value="{{ r.isText }}" hint-placeholder-val="{{ false }}"><div style="font-family:Athletic;font-size:13px;color:#7b0f23">Aa</div></sc-if>
+              </div>
+              <div style="flex:1;min-width:0;font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</div>
+              <button onClick="{{ r.toggle }}" title="Megjelenítés / elrejtés" style="background:none;border:0;color:var(--fg2);font-size:15px;cursor:pointer;padding:2px 4px">{{ r.eye }}</button>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <sc-if value="{{ P.has }}" hint-placeholder-val="{{ false }}">
+      <section style="display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">Kijelölt · {{ P.name }}</div>
+        <sc-if value="{{ P.isText }}" hint-placeholder-val="{{ false }}">
+          <textarea value="{{ P.text }}" onChange="{{ P.onText }}" rows="2" style="background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--fg);font-size:14px;resize:vertical;outline:none"></textarea>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--fg2)"><span>Méret</span><span>{{ P.sizeTxt }}</span></div>
+          <input type="range" min="{{ P.wMin }}" max="{{ P.wMax }}" step="{{ P.wStep }}" value="{{ P.wVal }}" onChange="{{ P.onSize }}">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--fg2)"><span>Forgatás</span><span>{{ P.rotTxt }}</span></div>
+          <input type="range" min="-180" max="180" step="1" value="{{ P.rotVal }}" onChange="{{ P.onRot }}">
+        </div>
+        <sc-if value="{{ P.showColor }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;color:var(--fg2)">Szín</span>
+            <div style="display:flex;gap:10px">
+              <sc-for list="{{ P.colors }}" as="o" hint-placeholder-count="4">
+                <button onClick="{{ o.onClick }}" title="{{ o.label }}" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--fg3);padding:0;cursor:pointer;background:{{ o.css }};outline:{{ o.ring }};outline-offset:3px"></button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ P.any }}" hint-placeholder-val="{{ false }}">
+      <section style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)">{{ P.count }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button onClick="{{ toFront }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">▲ Előre</button>
+          <button onClick="{{ toBack }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">▼ Hátra</button>
+          <button onClick="{{ flipSel }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">⇋ Tükör</button>
+          <button onClick="{{ dupSel }}" style="background:transparent;color:var(--fg);border:1px solid var(--fg3);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:var(--fg)">Duplikál</button>
+          <button onClick="{{ delSel }}" style="background:transparent;color:#e07a5f;border:1px solid #6b3a30;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="border-color:#e07a5f">Törlés</button>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--fg3)">Shift+kattintás: több elem együtt mozgatható. Nyilak: finom mozgatás. Alt: húzás snap nélkül.</div>
+      </section>
+      </sc-if>
+    </aside>
+  </div>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;bgColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ECD8C4&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;shadowStrength&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:0.3,&quot;min&quot;:0,&quot;max&quot;:0.6,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;}}">
+const PASS='jhlykrvsz26',LS='drk_ajandek_v4',BG0='#ECD8C4';
+const SIZES=[{w:1080,h:1080,n:'Feed'},{w:1440,h:1800,n:'Feed 4:5'},{w:1440,h:2560,n:'Story / Reels',logoOff:true},{w:1200,h:628,n:'Link ad'},{w:1200,h:1200,n:'Négyzetes'}];
+const kOf=s=>s.w+'x'+s.h;
+const SETD=[[752,879,'Sárga steppelt'],[805,713,'Fekete hosszú'],[711,838,'Olíva'],[791,816,'Bézs'],[760,841,'Navy']];
+const RIBD=[[1246,702],[1254,1095],[1201,711],[1111,1107],[1254,400],[1254,1205],[1032,1068],[1209,226],[1180,1173],[1249,319],[1600,205],[1600,166],[1600,299],[1600,264],[1600,192],[1600,174],[1600,250],[1600,382],[1600,379],[1600,368]];
+const META={};
+SETD.forEach((d,i)=>{META['set'+(i+1)]={w:d[0],h:d[1],src:'assets/sets/set'+(i+1)+'.png',name:d[2]};});
+RIBD.forEach((d,i)=>{const id='r'+String(i+1).padStart(2,'0');META[id]={w:d[0],h:d[1],src:'assets/ribbons/'+id+'.png',name:'Szalag '+(i+1)};});
+META.logo={w:2465,h:1359,src:'assets/drk-logo.png',name:'Logó'};
+const COLS={bordo:'#7b0f23',green:'#004e37',black:'#111111',white:'#ffffff'};
+const COLN={bordo:'Bordó',green:'Zöld',black:'Fekete',white:'Fehér'};
+const rid=()=>'l'+Math.random().toString(36).slice(2,9);
+const mk=(t,ref,cx,cy,w,o)=>({id:rid(),t,ref,cx,cy,w,rot:0,flip:false,hidden:false,...(o||{})});
+const TXT=(cx,cy,fs,text)=>mk('text',null,cx,cy,0,{text,fs,color:COLS.bordo});
+const LOGO=(cx,cy,w,hid)=>mk('logo','logo',cx,cy,w,{color:COLS.green,hidden:!!hid});
+const SETIDS=['set1','set2','set3','set4','set5'];
+const SETN={set1:'Sarga',set2:'Fekete',set3:'Oliva',set4:'Bezs',set5:'Navy'};
+const RECIPE={
+ set1:[{k:'ring',ref:'r07'},{k:'bow',ref:'r03',s:1}],
+ set2:[{k:'wave',ref:'r08'},{k:'bow',ref:'r09',s:1}],
+ set3:[{k:'scurve',ref:'r02'},{k:'bow',ref:'r09',s:-1,fl:1}],
+ set4:[{k:'wave',ref:'r10'},{k:'bow',ref:'r06',s:1}],
+ set5:[{k:'scurve',ref:'r02',fl:1},{k:'bow',ref:'r03',s:-1,fl:1}]
+};
+function layoutFor(setId,sz){
+  const W=sz.w,H=sz.h,ar=W/H,m=META[setId],cls=ar>1.5?'land':ar<.7?'story':ar<.9?'port':'sq';
+  const C={sq:{hm:.64,wm:.66,cx:.5,cy:.565,top:.17},port:{hm:.64,wm:.84,cx:.5,cy:.58,top:.2},story:{hm:.62,wm:.96,cx:.5,cy:.56,top:.22},land:{hm:.8,wm:.5,cx:.71,cy:.52,top:0}}[cls];
+  const pw=Math.min(C.wm,C.hm*H/W*m.w/m.h),P={cx:C.cx,cy:C.cy,w:pw,h:pw*W/H*m.h/m.w};
+  const fit=(ref,w,hm)=>Math.min(w,hm*H/W*META[ref].w/META[ref].h),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const back=[],mid=[];
+  RECIPE[setId].forEach(r=>{let cx,cy,w,rt=0;const sg=r.fl?-1:1;
+    if(r.k==='ring'){cx=P.cx;cy=P.cy;w=fit(r.ref,Math.min(1.05,P.w*1.25),cls==='land'?1.02:.86);back.push(mk('rib',r.ref,cx,cy,w,{flip:!!r.fl}));return;}
+    if(r.k==='wave'){w=cls==='land'?.72:1.12;cx=cls==='land'?P.cx:.5;cy=cl(P.cy+P.h*.22,.3,.9);rt=cls==='land'?-4:-3;back.push(mk('rib',r.ref,cx,cy,w,{rot:rt,flip:!!r.fl}));return;}
+    if(r.k==='scurve'){if(cls==='land'){back.push(mk('rib','r08',P.cx,cl(P.cy+P.h*.22,.3,.9),.72,{rot:-4,flip:!!r.fl}));return;}const t=C.top,hAvail=1-t;w=fit(r.ref,1.04,hAvail*.98);cx=.5;cy=t+hAvail/2;back.push(mk('rib',r.ref,cx,cy,w,{flip:!!r.fl}));return;}
+    w=fit(r.ref,P.w*.46,.36);cx=cl(P.cx+r.s*P.w*.4,.08,.92);cy=cl(P.cy-P.h*.36,C.top+.08,.9);mid.push(mk('rib',r.ref,cx,cy,w,{flip:!!r.fl}));});
+  const T={sq:TXT(.5,.095,.088,'AJÁNDÉKOZZ HAZAIT'),port:TXT(.5,.1,.1,'AJÁNDÉKOZZ\nHAZAIT'),story:TXT(.5,.13,.12,'AJÁNDÉKOZZ\nHAZAIT'),land:TXT(.25,.42,.085,'AJÁNDÉKOZZ\nHAZAIT')}[cls];
+  const G={sq:LOGO(.5,.945,.1),port:LOGO(.5,.955,.1),story:LOGO(.5,.95,.12,true),land:LOGO(.25,.78,.11)}[cls];
+  return [...back,...mid,mk('set',setId,P.cx,P.cy,P.w),T,G];
+}
+const rot=(x,y,a)=>[x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a)];
+
+class Component extends DCLogic {
+  state={authed:false,pw:'',pwErr:'',set:'set1',overview:false,size:kOf(SIZES[0]),layouts:{},sel:[],mode:'swap',shadow:true,busy:false};
+  past=[];future=[];imgs={};masks={};avail={w:900,h:600};guides=[];drag=null;_def={};tints={};hk=null;ht=0;
+  mctx=document.createElement('canvas').getContext('2d');
+  areaRef=el=>{if(el&&el!==this.areaEl){this.areaEl=el;if(this.ro)this.ro.disconnect();this.ro=new ResizeObserver(()=>this.measure());this.ro.observe(el);this.measure();}};
+  canvasRef=el=>{this.canvasEl=el;};
+  async componentDidMount(){
+    let sv={};try{sv=JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){}
+    this.setState({authed:sessionStorage.getItem('drk_ajandek_auth')==='1',layouts:sv.layouts||{},size:SIZES.some(s=>kOf(s)===sv.size)?sv.size:kOf(SIZES[0]),set:SETIDS.includes(sv.set)?sv.set:'set1',shadow:sv.shadow!==false});
+    this.onKey=e=>this.keyDown(e);window.addEventListener('keydown',this.onKey);
+    Object.keys(META).forEach(ref=>{const im=new Image();im.onload=()=>{this.imgs[ref]=im;this.loaded=(this.loaded||0)+1;this.makeMask(ref);this.forceUpdate();};im.src=META[ref].src;});
+    Promise.race([document.fonts.load('100px Athletic','ÁÉ'),new Promise(r=>setTimeout(r,2500))]).catch(()=>{}).then(()=>{this.fontOk=1;this.forceUpdate();});
+  }
+  componentWillUnmount(){window.removeEventListener('keydown',this.onKey);if(this.ro)this.ro.disconnect();}
+  componentDidUpdate(){this.paintStage();this.persist();}
+  persist(){const S=this.state;if(this._ps===S.layouts&&this._pz===S.size&&this._psh===S.shadow&&this._pst===S.set)return;this._ps=S.layouts;this._pz=S.size;this._psh=S.shadow;this._pst=S.set;clearTimeout(this._pt);this._pt=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify({layouts:S.layouts,size:S.size,shadow:S.shadow,set:S.set}));}catch(e){}},300);}
+  measure(){if(!this.areaEl)return;const r=this.areaEl.getBoundingClientRect();if(Math.abs(r.width-this.avail.w)>1||Math.abs(r.height-this.avail.h)>1){this.avail={w:r.width,h:r.height};this.forceUpdate();}}
+  sz(){return SIZES.find(s=>kOf(s)===this.state.size)||SIZES[0];}
+  defFor(key,sid){sid=sid||this.state.set;const ck=sid+'|'+key;if(!this._def[ck])this._def[ck]=layoutFor(sid,SIZES.find(s=>kOf(s)===key));return this._def[ck];}
+  layersFor(key,sid){sid=sid||this.state.set;return this.state.layouts[sid+'|'+key]||this.defFor(key,sid);}
+  cur(){return this.layersFor(this.state.size);}
+  setL(fn){this.setState(s=>({layouts:{...s.layouts,[s.set+'|'+s.size]:fn(s.layouts[s.set+'|'+s.size]||this.defFor(s.size,s.set))}}));}
+  snap(){return {k:this.state.size,s:this.state.set,L:JSON.stringify(this.cur())};}
+  hist(hk){const t=Date.now();if(hk&&hk===this.hk&&t-this.ht<900){this.ht=t;return;}this.hk=hk||null;this.ht=t;this.past.push(this.snap());if(this.past.length>80)this.past.shift();this.future=[];}
+  edit(fn,hk){this.hist(hk);this.setL(fn);}
+  restore(sn){this.setState(s=>({size:sn.k,set:sn.s,layouts:{...s.layouts,[sn.s+'|'+sn.k]:JSON.parse(sn.L)},sel:[]}));}
+  undo=()=>{if(!this.past.length)return;const sn=this.past.pop();this.future.push(this.snap());this.hk=null;this.restore(sn);};
+  redo=()=>{if(!this.future.length)return;const sn=this.future.pop();this.past.push(this.snap());this.hk=null;this.restore(sn);};
+  makeMask(ref){const im=this.imgs[ref],m=META[ref],s=Math.min(1,640/Math.max(m.w,m.h)),w=Math.max(1,Math.round(m.w*s)),h=Math.max(1,Math.round(m.h*s)),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(im,0,0,w,h);const d=x.getImageData(0,0,w,h).data,a=new Uint8Array(w*h);for(let i=0;i<w*h;i++)a[i]=d[i*4+3]>24?1:0;this.masks[ref]={w,h,a};}
+  tint(color){if(this.tints[color])return this.tints[color];const im=this.imgs.logo;if(!im)return null;const w=900,h=Math.round(w*im.height/im.width),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(im,0,0,w,h);x.globalCompositeOperation='source-in';x.fillStyle=color;x.fillRect(0,0,w,h);this.tints[color]=c;return c;}
+  bg(){return this.props.bgColor||BG0;}
+  box(l,sz){
+    if(l.t==='text'){const fs=l.fs*sz.w,ls=(l.text||'').toUpperCase().split('\n');this.mctx.font=fs+'px Athletic';let w=0;ls.forEach(s=>{w=Math.max(w,this.mctx.measureText(s).width);});return {w:Math.max(w,fs*.5),h:Math.max(1,ls.length)*fs*1.05};}
+    const m=META[l.ref],w=l.w*sz.w;return {w,h:w*m.h/m.w};
+  }
+  corners(l,sz){const b=this.box(l,sz),a=l.rot*Math.PI/180,cx=l.cx*sz.w,cy=l.cy*sz.h;return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([u,v])=>{const [x,y]=rot(u*b.w/2,v*b.h/2,a);return [cx+x,cy+y];});}
+  paint(ctx,sz,k,layers){
+    const W=sz.w,H=sz.h;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W*k,H*k);ctx.fillStyle=this.bg();ctx.fillRect(0,0,W*k,H*k);ctx.setTransform(k,0,0,k,0,0);
+    const sh=this.state.shadow?(this.props.shadowStrength??.3):0;
+    for(const l of layers){
+      if(l.hidden)continue;const b=this.box(l,sz);ctx.save();ctx.translate(l.cx*W,l.cy*H);ctx.rotate(l.rot*Math.PI/180);
+      if(l.t==='text'){const fs=l.fs*W,ls=(l.text||'').toUpperCase().split('\n');ctx.font=fs+'px Athletic';ctx.fillStyle=l.color;ctx.textAlign='center';ctx.textBaseline='middle';ls.forEach((s,i)=>ctx.fillText(s,0,(i-(ls.length-1)/2)*fs*1.05));}
+      else{const im=l.t==='logo'?this.tint(l.color):this.imgs[l.ref];if(im){if(l.flip)ctx.scale(-1,1);if(sh&&l.t!=='logo'){ctx.shadowColor='rgba(70,35,20,'+sh+')';ctx.shadowBlur=W*.02*k;ctx.shadowOffsetY=W*.008*k;}ctx.drawImage(im,-b.w/2,-b.h/2,b.w,b.h);}}
+      ctx.restore();
+    }
+  }
+  scaleFor(sz){const aw=this.avail.w-72,ah=this.avail.h-72;return Math.max(.08,Math.min(aw/sz.w,ah/sz.h));}
+  paintStage(){const c=this.canvasEl;if(!c)return;const sz=this.sz(),k=this.scaleFor(sz),dpr=Math.min(2,window.devicePixelRatio||1),w=Math.round(sz.w*k*dpr),h=Math.round(sz.h*k*dpr);if(c.width!==w)c.width=w;if(c.height!==h)c.height=h;this.paint(c.getContext('2d'),sz,w/sz.w,this.cur());}
+  pt(e){const sz=this.sz(),r=this.canvasEl.getBoundingClientRect(),k=r.width/sz.w;return {x:(e.clientX-r.left)/k,y:(e.clientY-r.top)/k,k};}
+  hit(p){
+    const sz=this.sz(),L=this.cur();
+    for(let i=L.length-1;i>=0;i--){const l=L[i];if(l.hidden)continue;const b=this.box(l,sz),a=-l.rot*Math.PI/180,dx=p.x-l.cx*sz.w,dy=p.y-l.cy*sz.h,[lx,ly]=rot(dx,dy,a);let u=lx/b.w+.5,v=ly/b.h+.5;if(u<0||u>1||v<0||v>1)continue;if(l.t==='text')return l.id;if(l.flip)u=1-u;const m=this.masks[l.t==='logo'?'logo':l.ref];if(!m)return l.id;const mx=Math.round(u*(m.w-1)),my=Math.round(v*(m.h-1)),R=3;let ok=false;for(let yy=Math.max(0,my-R);yy<=Math.min(m.h-1,my+R)&&!ok;yy++)for(let xx=Math.max(0,mx-R);xx<=Math.min(m.w-1,mx+R);xx++)if(m.a[yy*m.w+xx]){ok=true;break;}if(ok)return l.id;}
+    return null;
+  }
+  onStageDown=e=>{
+    e.preventDefault();const p=this.pt(e),id=this.hit(p),multi=e.shiftKey||e.metaKey||e.ctrlKey;let sel=this.state.sel;
+    if(id){if(multi)sel=sel.includes(id)?sel.filter(x=>x!==id):[...sel,id];else if(!sel.includes(id))sel=[id];}else if(!multi)sel=[];
+    this.setState({sel});
+    if(id&&sel.includes(id)){const sz=this.sz(),L=this.cur().filter(l=>sel.includes(l.id)),st={};let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;L.forEach(l=>{st[l.id]=[l.cx,l.cy];this.corners(l,sz).forEach(c=>{x0=Math.min(x0,c[0]);x1=Math.max(x1,c[0]);y0=Math.min(y0,c[1]);y1=Math.max(y1,c[1]);});});this.drag={type:'move',p0:p,st,bb:[x0,y0,x1,y1],moved:false};this.bindDrag();}
+  };
+  startScale(e,l){e.stopPropagation();e.preventDefault();const sz=this.sz(),p=this.pt(e),c={x:l.cx*sz.w,y:l.cy*sz.h};this.drag={type:'scale',id:l.id,c,d0:Math.hypot(p.x-c.x,p.y-c.y)||1,v0:l.t==='text'?l.fs:l.w,text:l.t==='text'};this.hist();this.bindDrag();}
+  startRot(e,l){e.stopPropagation();e.preventDefault();const sz=this.sz(),p=this.pt(e),c={x:l.cx*sz.w,y:l.cy*sz.h};this.drag={type:'rot',id:l.id,c,a0:Math.atan2(p.y-c.y,p.x-c.x),r0:l.rot};this.hist();this.bindDrag();}
+  bindDrag(){const mv=e=>this.onMove(e),up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);this.drag=null;this.guides=[];this.forceUpdate();};window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);}
+  onMove(e){
+    const d=this.drag;if(!d)return;const sz=this.sz(),p=this.pt(e),W=sz.w,H=sz.h;
+    if(d.type==='move'){
+      let dx=p.x-d.p0.x,dy=p.y-d.p0.y;if(!d.moved){if(Math.hypot(dx,dy)*p.k<3)return;d.moved=true;this.hist();}
+      this.guides=[];
+      if(!e.altKey){const mg=Math.round(W*.05),thr=8/p.k,bb=d.bb,best=(vals,T)=>{let r=null;vals.forEach(v=>T.forEach(t=>{const df=t-v;if(Math.abs(df)<thr&&(!r||Math.abs(df)<Math.abs(r.df)))r={df,t};}));return r;};
+        const sx=best([bb[0]+dx,(bb[0]+bb[2])/2+dx,bb[2]+dx],[0,mg,W/2,W-mg,W]),sy=best([bb[1]+dy,(bb[1]+bb[3])/2+dy,bb[3]+dy],[0,mg,H/2,H-mg,H]);
+        if(sx){dx+=sx.df;this.guides.push({x:sx.t});}if(sy){dy+=sy.df;this.guides.push({y:sy.t});}}
+      this.setL(L=>L.map(l=>d.st[l.id]?{...l,cx:d.st[l.id][0]+dx/W,cy:d.st[l.id][1]+dy/H}:l));
+    }else if(d.type==='scale'){const v=Math.max(.01,d.v0*Math.hypot(p.x-d.c.x,p.y-d.c.y)/d.d0);this.setL(L=>L.map(l=>l.id===d.id?(d.text?{...l,fs:v}:{...l,w:v}):l));}
+    else if(d.type==='rot'){let r=d.r0+(Math.atan2(p.y-d.c.y,p.x-d.c.x)-d.a0)*180/Math.PI;r=((r+540)%360)-180;if(e.shiftKey)r=Math.round(r/15)*15;else{const n=Math.round(r/45)*45;if(Math.abs(r-n)<3)r=n;}r=Math.round(r);this.setL(L=>L.map(l=>l.id===d.id?{...l,rot:r}:l));}
+  }
+  keyDown(e){
+    const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||!this.state.authed)return;
+    const mod=e.metaKey||e.ctrlKey,k=e.key.toLowerCase();
+    if(mod&&k==='z'){e.preventDefault();e.shiftKey?this.redo():this.undo();return;}
+    if(mod&&k==='y'){e.preventDefault();this.redo();return;}
+    if(mod&&k==='a'){e.preventDefault();this.selectAll();return;}
+    if(mod&&k==='d'){e.preventDefault();this.dupSel();return;}
+    if(k==='escape'){this.setState({sel:[]});return;}
+    const sel=this.state.sel;if(!sel.length)return;
+    if(k==='delete'||k==='backspace'){e.preventDefault();this.delSel();return;}
+    const st=e.shiftKey?10:1,sz=this.sz(),mv={arrowleft:[-1,0],arrowright:[1,0],arrowup:[0,-1],arrowdown:[0,1]}[k];
+    if(mv){e.preventDefault();this.edit(L=>L.map(l=>sel.includes(l.id)?{...l,cx:l.cx+mv[0]*st/sz.w,cy:l.cy+mv[1]*st/sz.h}:l),'nudge');}
+  }
+  selectAll=()=>this.setState({sel:this.cur().map(l=>l.id)});
+  delSel=()=>{const sel=this.state.sel;if(!sel.length)return;this.edit(L=>L.filter(l=>!sel.includes(l.id)));this.setState({sel:[]});};
+  dupSel=()=>{const sel=this.state.sel;if(!sel.length)return;const ids=[];this.edit(L=>{const add=L.filter(l=>sel.includes(l.id)).map(l=>{const n={...l,id:rid(),cx:l.cx+.03,cy:l.cy+.03};ids.push(n.id);return n;});return [...L,...add];});this.setState({sel:ids});};
+  flipSel=()=>{const sel=this.state.sel;this.edit(L=>L.map(l=>sel.includes(l.id)&&l.t!=='text'?{...l,flip:!l.flip}:l));};
+  move(front){const sel=this.state.sel;if(!sel.length)return;this.edit(L=>{const a=L.filter(l=>sel.includes(l.id)),b=L.filter(l=>!sel.includes(l.id));return front?[...b,...a]:[...a,...b];});}
+  toFront=()=>this.move(true);toBack=()=>this.move(false);
+  autoLayout=()=>{const sz=this.sz();this.edit(()=>layoutFor(this.state.set,sz));this.setState({sel:[]});};
+  toggleShadow=()=>this.setState(s=>({shadow:!s.shadow}));
+  addText=()=>{const l=TXT(.5,.5,.06,'SZÖVEG');this.edit(L=>[...L,l]);this.setState({sel:[l.id]});};
+  addLogo=()=>{const l=LOGO(.13,.92,.13);this.edit(L=>[...L,l]);this.setState({sel:[l.id]});};
+  defW(t,ref){const sz=this.sz(),ar=sz.w/sz.h,m=META[ref];if(t==='set')return ar>1.5?.19:ar<.7?.46:ar<.9?.42:.33;return m.w/m.h>3?.9:ar>1.5?.3:.4;}
+  pick(t,ref){
+    if(t==='set'){this.setState({set:ref,sel:[]});return;}
+    const sel=this.state.sel,L=this.cur(),one=sel.length===1?L.find(l=>l.id===sel[0]):null;
+    if(this.state.mode==='swap'&&one&&one.t===t){this.edit(Ls=>Ls.map(l=>l.id===one.id?{...l,ref}:l));return;}
+    const l=mk(t,ref,.5,.5,this.defW(t,ref));this.edit(Ls=>[...Ls,l]);this.setState({sel:[l.id]});
+  }
+  download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+  fname(sz,sid){return 'DRK_Ajandekozz_'+SETN[sid||this.state.set]+'_'+sz.w+'x'+sz.h+'.png';}
+  blobFor(sz,layers){const c=document.createElement('canvas');c.width=sz.w;c.height=sz.h;this.paint(c.getContext('2d'),sz,1,layers);return new Promise(r=>c.toBlob(r,'image/png'));}
+  exportCurrent=async()=>{const sz=this.sz();this.download(await this.blobFor(sz,this.cur()),this.fname(sz));};
+  zipSets=async(ids,name)=>{if(this.state.busy||!window.JSZip)return;this.setState({busy:true});try{const z=new window.JSZip();for(const sid of ids)for(const sz of SIZES)z.folder(SETN[sid]).file(this.fname(sz,sid),await this.blobFor(sz,this.layersFor(kOf(sz),sid)));this.download(await z.generateAsync({type:'blob'}),name);}finally{this.setState({busy:false});}};
+  exportAll=()=>this.zipSets(SETIDS,'DRK_Ajandekozz_mind_'+SETIDS.length*SIZES.length+'.zip');
+  exportSet=()=>this.zipSets([this.state.set],'DRK_Ajandekozz_'+SETN[this.state.set]+'.zip');
+  thumb(sid,sz){const key=sid+'|'+kOf(sz),sig=[this.state.layouts[key],this.state.shadow,this.loaded,this.props.bgColor,this.fontOk].join('~');this._th=this._th||{};const c=this._th[key];if(c&&c.sig===sig&&c.layouts===this.state.layouts[key])return c;const k=Math.min(200/sz.h,320/sz.w),cv=document.createElement('canvas');cv.width=Math.round(sz.w*k);cv.height=Math.round(sz.h*k);this.paint(cv.getContext('2d'),sz,cv.width/sz.w,this.layersFor(kOf(sz),sid));return this._th[key]={sig,layouts:this.state.layouts[key],url:cv.toDataURL('image/jpeg',.85),w:cv.width,h:cv.height};}
+  renderVals(){
+    const S=this.state,sz=this.sz(),L=this.cur(),sel=S.sel.filter(id=>L.some(l=>l.id===id)),k=this.scaleFor(sz),dw=Math.round(sz.w*k),dh=Math.round(sz.h*k);
+    const lyr=sel.length===1?L.find(l=>l.id===sel[0]):null,selRef=lyr&&lyr.t==='rib'?lyr.ref:null,selT=lyr?lyr.t:null;
+    const tile=(t,ref)=>({src:META[ref].src,name:META[ref].name,ring:selRef===ref?'2px solid var(--acc)':'2px solid transparent',pick:()=>this.pick(t,ref)});
+    const refs=Object.keys(META),setIds=refs.filter(r=>r.startsWith('set')),ribIds=refs.filter(r=>/^r\d/.test(r));
+    const guideLines=this.guides.map(g=>g.x!==undefined?{left:Math.round(g.x*k),top:0,w:1,h:dh}:{left:0,top:Math.round(g.y*k),w:dw,h:1});
+    const selBoxes=sel.map(id=>{const l=L.find(x=>x.id===id),b=this.box(l,sz);return {left:l.cx*dw,top:l.cy*dh,w:b.w*k,h:b.h*k,rot:l.rot,single:sel.length===1,onScale:e=>this.startScale(e,l),onRotate:e=>this.startRot(e,l)};});
+    const nm=l=>l.t==='text'?'Szöveg: '+(l.text||'').replace(/\n/g,' '):l.t==='logo'?'Logó':META[l.ref].name;
+    const layerRows=[...L].reverse().map(l=>({name:nm(l),on:sel.includes(l.id),bg:sel.includes(l.id)?'var(--card)':'transparent',op:l.hidden?.45:1,hasImg:l.t!=='text',isText:l.t==='text',src:l.t==='text'?'':META[l.ref].src,eye:l.hidden?'○':'◉',
+      onSel:e=>this.setState(s=>({sel:(e.shiftKey||e.metaKey||e.ctrlKey)?(s.sel.includes(l.id)?s.sel.filter(x=>x!==l.id):[...s.sel,l.id]):[l.id]})),
+      toggle:e=>{e.stopPropagation();this.edit(Ls=>Ls.map(x=>x.id===l.id?{...x,hidden:!x.hidden}:x));}}));
+    const P={has:!!lyr,any:sel.length>0,count:sel.length>1?sel.length+' elem kijelölve · együtt mozognak':'Kijelölt elem'};
+    if(lyr){const tx=lyr.t==='text';Object.assign(P,{name:nm(lyr).slice(0,26),isText:tx,text:lyr.text||'',onText:e=>{const v=e.target.value;this.edit(Ls=>Ls.map(x=>x.id===lyr.id?{...x,text:v}:x),'text');},
+      wMin:tx?.02:.04,wMax:tx?.2:1.6,wStep:tx?.002:.005,wVal:tx?lyr.fs:lyr.w,sizeTxt:tx?Math.round(lyr.fs*sz.w)+' px':Math.round(lyr.w*100)+'%',rotVal:lyr.rot,rotTxt:Math.round(lyr.rot)+'°',
+      onSize:e=>{const v=parseFloat(e.target.value);this.edit(Ls=>Ls.map(x=>x.id===lyr.id?(tx?{...x,fs:v}:{...x,w:v}):x),'size');},
+      onRot:e=>{const v=parseFloat(e.target.value);this.edit(Ls=>Ls.map(x=>x.id===lyr.id?{...x,rot:v}:x),'rot');},
+      showColor:lyr.t!=='set'&&lyr.t!=='rib',colors:Object.keys(COLS).map(c=>({label:COLN[c],css:COLS[c],ring:lyr.color===COLS[c]?'2px solid var(--acc)':'2px solid transparent',onClick:()=>this.edit(Ls=>Ls.map(x=>x.id===lyr.id?{...x,color:COLS[c]}:x))}))});}
+    const canSwap=S.mode==='swap'&&lyr&&selT==='rib';
+    return {
+      locked:!S.authed,unlocked:S.authed,pw:S.pw,pwErr:S.pwErr,onPw:e=>this.setState({pw:e.target.value,pwErr:''}),
+      onLogin:e=>{e.preventDefault();if(S.pw===PASS){sessionStorage.setItem('drk_ajandek_auth','1');this.setState({authed:true,pw:''});}else this.setState({pwErr:'Hibás jelszó.'});},
+      undoCol:this.past.length?'var(--fg)':'var(--fg3)',redoCol:this.future.length?'var(--fg)':'var(--fg3)',undo:this.undo,redo:this.redo,
+      exportCurrent:this.exportCurrent,exportAll:this.exportAll,exportSet:this.exportSet,zipLabel:S.busy?'Készül…':'Mind a '+SIZES.length*SETIDS.length+' · ZIP',zipSetLabel:S.busy?'Készül…':META[S.set].name+' · ZIP ('+SIZES.length+')',
+      overview:S.overview,showStage:!S.overview,ovLabel:S.overview?'← Vissza a szerkesztőhöz':'Áttekintés · 25 layout',toggleOverview:()=>this.setState(s=>({overview:!s.overview,sel:[]})),
+      ovRows:S.overview?SETIDS.map(sid=>({name:META[sid].name,cells:SIZES.map(z=>{const t=this.thumb(sid,z);return {src:t.url,w:t.w,h:t.h,label:z.w+'×'+z.h,onClick:()=>this.setState({set:sid,size:kOf(z),overview:false,sel:[]})};})})):[],
+      modeOpts:[['swap','Csere a kijelöltre'],['add','Új hozzáadása']].map(([id,label])=>({label,bg:S.mode===id?'var(--fg)':'transparent',fg:S.mode===id?'var(--bg)':'var(--fg2)',onClick:()=>this.setState({mode:id})})),
+      modeHint:S.mode==='swap'?(canSwap?'A kijelölt szalag lecserélése a kattintottra (helye és mérete marad).':'Nincs kijelölt szalag – a kattintott szalag újként kerül a vászonra.'):'Minden kattintás új elemet tesz a vászonra.',
+      setTiles:setIds.map(r=>({...tile('set',r),ring:S.set===r?'2px solid var(--acc)':'2px solid transparent'})),ribThick:ribIds.slice(0,10).map(r=>tile('rib',r)),ribThin:ribIds.slice(10).map(r=>tile('rib',r)),
+      addText:this.addText,addLogo:this.addLogo,toggleShadow:this.toggleShadow,shadowLabel:S.shadow?'be':'ki',shadowBg:S.shadow?'var(--fg)':'transparent',shadowFg:S.shadow?'var(--bg)':'var(--fg)',autoLayout:this.autoLayout,
+      sizeTabs:SIZES.map(s=>({label:s.w+'×'+s.h,bg:kOf(s)===S.size?'var(--fg)':'transparent',fg:kOf(s)===S.size?'var(--bg)':'var(--fg2)',onClick:()=>this.setState({size:kOf(s),sel:[]})})),
+      sizeNote:META[S.set].name+' · '+sz.n+(sz.logoOff?' · logó alapból kikapcsolva':''),
+      areaRef:this.areaRef,canvasRef:this.canvasRef,dw,dh,onStageDown:this.onStageDown,guideLines,selBoxes,layerRows,P,selectAll:this.selectAll,
+      toFront:this.toFront,toBack:this.toBack,flipSel:this.flipSel,dupSel:this.dupSel,delSel:this.delSel
+    };
+  }
+}
+</script>
+</body>
+</html>
