@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#0c0d0f;color:#e9eaec;font-family:Montserrat,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+input,select,button,textarea{font:inherit;color:inherit}
+a{color:#9fd3ff;text-decoration:none}a:hover{color:#d4ecff}
+::placeholder{color:#5d636b}
+select option{background:#15171a;color:#e9eaec}
+*::-webkit-scrollbar{width:8px;height:8px}*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:8px}
+input[type=range]{accent-color:#9fd3ff;width:100%}
+</style>
+</helmet>
+<div style="position:fixed;inset:0;background:#0c0d0f;color:#e9eaec;display:flex;flex-direction:column;font-family:Montserrat,'Helvetica Neue',Arial,sans-serif">
+
+<sc-if value="{{ showLogin }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,#1a1d22 0%,#0c0d0f 60%)">
+  <form onSubmit="{{ onLogin }}" style="width:360px;display:flex;flex-direction:column;gap:18px;padding:36px;background:#131518;border:1px solid rgba(255,255,255,.08);border-radius:20px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:12px;letter-spacing:.34em;font-weight:600;color:#8b9097">DRK · EVEREST</div>
+      <div style="font-size:26px;font-weight:300;letter-spacing:-.01em">Időjárás kreatív</div>
+    </div>
+    <input type="password" placeholder="Jelszó" value="{{ pw }}" onInput="{{ onPw }}" autofocus="autofocus" style="width:100%;box-sizing:border-box;background:#090a0c;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 14px;color:#fff;font-size:15px;outline:none" style-focus="border-color:#9fd3ff">
+    <sc-if value="{{ pwErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#ff9d8f">Hibás jelszó.</div></sc-if>
+    <button type="submit" style="background:#f2f3f4;color:#0c0d0f;border:0;border-radius:10px;padding:12px;font-weight:600;font-size:14px;cursor:pointer" style-hover="background:#fff">Belépés</button>
+  </form>
+</div>
+</sc-if>
+
+<sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:14px;padding:0 20px;height:58px;border-bottom:1px solid rgba(255,255,255,.07);background:#0f1012;flex:none">
+  <div style="display:flex;align-items:baseline;gap:10px">
+    <span style="font-weight:700;letter-spacing:.2em;font-size:14px">DRK</span>
+    <span style="font-size:13px;color:#8b9097">Everest · Időjárás kreatív</span>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;gap:10px;margin-left:16px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#8b9097;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:99px;padding:5px 11px">
+      <span style="width:7px;height:7px;border-radius:99px;background:{{ apiDot }}"></span>{{ apiText }}
+    </div>
+    <sc-if value="{{ corrected }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:#ffd58a;background:rgba(255,200,100,.1);border:1px solid rgba(255,200,100,.25);border-radius:99px;padding:5px 11px">Időkép szerint korrigálva</div></sc-if>
+  </div>
+  <sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#c9cdd2"><div style="width:140px;height:4px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden"><div style="height:100%;background:#9fd3ff;width:{{ busyPct }}"></div></div>{{ busyText }}</div></sc-if>
+  <button onClick="{{ onRefresh }}" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 13px;font-size:13px;cursor:pointer" style-hover="background:rgba(255,255,255,.1)">Frissítés</button>
+  <button onClick="{{ onZip }}" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 13px;font-size:13px;cursor:pointer" style-hover="background:rgba(255,255,255,.1)">Összes letöltése (ZIP)</button>
+  <button onClick="{{ onBatch }}" style="background:#f2f3f4;color:#0c0d0f;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#fff">Batch export · 3×6</button>
+  <button onClick="{{ onLogout }}" style="background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 13px;font-size:13px;color:#8b9097;cursor:pointer" style-hover="color:#fff">Kilépés</button>
+</div>
+
+<div style="flex:1;display:flex;min-height:0">
+<!-- SIDEBAR -->
+<div style="width:392px;flex:none;border-right:1px solid rgba(255,255,255,.07);background:#0f1012;display:flex;flex-direction:column;min-height:0">
+  <div style="display:flex;gap:4px;padding:12px 14px 0;flex:none">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <button onClick="{{ t.on }}" style="flex:1;padding:9px 4px;font-size:12.5px;font-weight:500;cursor:pointer;border-radius:9px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }}">{{ t.n }}</button>
+    </sc-for>
+  </div>
+  <div style="flex:1;overflow:auto;padding:16px 14px 28px;display:flex;flex-direction:column;gap:16px">
+
+  <!-- WEATHER TAB -->
+  <sc-if value="{{ tabW }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ apiErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;line-height:1.45;color:#ffd58a;background:rgba(255,200,100,.08);border:1px solid rgba(255,200,100,.2);border-radius:10px;padding:10px 12px">Az Open-Meteo nem érhető el. Az adatok kézzel továbbra is szerkeszthetők.</div></sc-if>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button onClick="{{ onToggleCorr }}" style="cursor:pointer;font-size:12.5px;padding:7px 11px;border-radius:99px;border:1px solid {{ corrBd }};background:{{ corrBg }};color:{{ corrFg }}">Időkép szerint korrigálva</button>
+      <button onClick="{{ onResetApi }}" style="cursor:pointer;font-size:12.5px;padding:7px 11px;border-radius:99px;border:1px solid rgba(255,255,255,.12);background:transparent">Visszaállítás API-ra</button>
+      <a href="https://www.idokep.hu/idojaras/Budapest" target="_blank" style="font-size:12.5px;margin-left:auto">Időkép ↗</a>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Város<input value="{{ wx.city }}" onInput="{{ onCity }}" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Aktuális (°C)<input value="{{ wx.temp }}" onInput="{{ onTemp }}" inputmode="decimal" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Max (°C)<input value="{{ wx.max }}" onInput="{{ onMax }}" inputmode="decimal" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Min (°C)<input value="{{ wx.min }}" onInput="{{ onMin }}" inputmode="decimal" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Szél (km/h)<input value="{{ wx.wind }}" onInput="{{ onWind }}" inputmode="decimal" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Hőérzet (°C)<input value="{{ wx.feels }}" onInput="{{ onFeels }}" inputmode="decimal" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+      <label style="grid-column:1/3;display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Időjárási kód (WMO)
+        <select value="{{ curCode }}" onChange="{{ onCode }}" style="width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none">
+          <sc-for list="{{ codeOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
+        </select></label>
+      <label style="grid-column:1/3;display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Állapot szövege (üres = az állapot felirata)
+        <input value="{{ textOverride }}" onInput="{{ onTextOv }}" placeholder="{{ labelAuto }}" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+    </div>
+
+    <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">Következő 6 óra</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ hoursUI }}" as="h" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:62px 58px 26px 1fr;gap:6px;align-items:center">
+          <input value="{{ h.label }}" onInput="{{ h.onLabel }}" style="min-width:0;box-sizing:border-box;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 8px;color:#e9eaec;font-size:12.5px;outline:none">
+          <input value="{{ h.temp }}" onInput="{{ h.onTemp }}" inputmode="decimal" style="min-width:0;box-sizing:border-box;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 8px;color:#e9eaec;font-size:12.5px;outline:none">
+          <img src="{{ h.icon }}" style="width:24px;height:24px">
+          <select value="{{ h.code }}" onChange="{{ h.onCode }}" style="min-width:0;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 6px;color:#e9eaec;font-size:12px;outline:none">
+            <sc-for list="{{ codeOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
+          </select>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">Heti előrejelzés</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ daysUI }}" as="d" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:78px 44px 44px 26px 1fr;gap:6px;align-items:center">
+          <input value="{{ d.label }}" onInput="{{ d.onLabel }}" style="min-width:0;box-sizing:border-box;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 8px;color:#e9eaec;font-size:12.5px;outline:none">
+          <input value="{{ d.min }}" onInput="{{ d.onMin }}" inputmode="decimal" title="Min" style="min-width:0;box-sizing:border-box;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 6px;color:#e9eaec;font-size:12.5px;outline:none">
+          <input value="{{ d.max }}" onInput="{{ d.onMax }}" inputmode="decimal" title="Max" style="min-width:0;box-sizing:border-box;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 6px;color:#e9eaec;font-size:12.5px;outline:none">
+          <img src="{{ d.icon }}" style="width:24px;height:24px">
+          <select value="{{ d.code }}" onChange="{{ d.onCode }}" style="min-width:0;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 6px;color:#e9eaec;font-size:12px;outline:none">
+            <sc-for list="{{ codeOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
+          </select>
+        </div>
+      </sc-for>
+      <div style="font-size:11px;color:#5d636b">Oszlopok: nap · min · max · ikon</div>
+    </div>
+  </sc-if>
+
+  <!-- STATE TAB -->
+  <sc-if value="{{ tabS }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#131518;border:1px solid rgba(255,255,255,.07);border-radius:14px">
+      <img src="{{ curStateIcon }}" style="width:40px;height:40px">
+      <div style="flex:1"><div style="font-size:11.5px;color:#8b9097">Aktív állapot</div><div style="font-size:18px;font-weight:500">{{ curStateName }}</div><div style="font-size:11.5px;color:#8b9097">Automatikus: {{ autoName }}</div></div>
+    </div>
+    <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Állapot felülírása
+      <select value="{{ stateOverride }}" onChange="{{ onStateOv }}" style="width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 10px;color:#e9eaec;font-size:13px;outline:none">
+        <sc-for list="{{ stateOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
+      </select></label>
+    <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Állapot felirata
+      <input value="{{ cfgLabel }}" onInput="{{ onCfgLabel }}" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+    <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">Figyelmeztetés-kártya címke
+      <input value="{{ cfgAlert }}" onInput="{{ onCfgAlert }}" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+    <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">Szlogen</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ sloganRows }}" as="r" hint-placeholder-count="4">
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid {{ r.bd }};background:{{ r.bg }}">
+          <button onClick="{{ r.onSel }}" style="flex:none;width:30px;height:30px;border-radius:99px;border:1px solid rgba(255,255,255,.2);background:{{ r.dot }};color:{{ r.dotFg }};font-weight:600;font-size:12px;cursor:pointer">{{ r.k }}</button>
+          <input value="{{ r.text }}" onInput="{{ r.onText }}" placeholder="Egyedi szöveg…" style="flex:1;min-width:0;background:transparent;border:0;color:#e9eaec;font-size:13px;outline:none">
+        </div>
+      </sc-for>
+    </div>
+    <button onClick="{{ onResetSlogans }}" style="align-self:flex-start;cursor:pointer;font-size:12px;padding:7px 11px;border-radius:99px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8b9097">Alapértelmezett párosítás visszaállítása</button>
+  </sc-if>
+
+  <!-- IMAGES TAB -->
+  <sc-if value="{{ tabI }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <sc-for list="{{ manageChips }}" as="c" hint-placeholder-count="7">
+        <button onClick="{{ c.on }}" style="cursor:pointer;font-size:12.5px;padding:7px 11px;border-radius:99px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.n }}</button>
+      </sc-for>
+    </div>
+    <div style="font-size:12px;color:#8b9097;line-height:1.5">{{ manageNote }}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <sc-for list="{{ slots }}" as="s" hint-placeholder-count="4">
+        <label onDragOver="{{ s.onOver }}" onDrop="{{ s.onDrop }}" style="position:relative;display:flex;align-items:center;justify-content:center;height:{{ s.h }};border-radius:12px;border:1px dashed rgba(255,255,255,.2);background:#090a0c;overflow:hidden;cursor:pointer">
+          <input type="file" accept="image/*" onChange="{{ s.onFile }}" style="display:none">
+          <img src="{{ s.url }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:{{ s.op }}">
+          <div style="position:relative;font-size:11.5px;font-weight:600;background:rgba(0,0,0,.6);padding:4px 9px;border-radius:99px">{{ s.label }}{{ s.tag }}</div>
+        </label>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <sc-for list="{{ slots }}" as="s" hint-placeholder-count="4">
+        <button onClick="{{ s.onClear }}" style="cursor:pointer;font-size:11.5px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#8b9097">{{ s.label }} · alapkép</button>
+      </sc-for>
+    </div>
+    <div style="font-size:11.5px;color:#5d636b">Húzd rá a képet a mezőre vagy kattints. A böngészőben tárolódik.</div>
+  </sc-if>
+
+  <!-- ELEMENTS TAB -->
+  <sc-if value="{{ tabE }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.on }}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#131518;cursor:pointer;text-align:left">
+          <span style="flex:none;width:34px;height:20px;border-radius:99px;background:{{ t.bg }};position:relative"><span style="position:absolute;top:2px;left:{{ t.left }};width:16px;height:16px;border-radius:99px;background:#fff"></span></span>
+          <span style="font-size:13px">{{ t.n }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:#8b9097">CTA felirat
+      <input value="{{ ctaText }}" onInput="{{ onCtaText }}" style="box-sizing:border-box;width:100%;background:#090a0c;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 10px;color:#e9eaec;font-size:13px;outline:none"></label>
+    <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">DRK logó</div>
+    <div style="display:flex;gap:6px">
+      <sc-for list="{{ logoModes }}" as="m" hint-placeholder-count="3">
+        <button onClick="{{ m.on }}" style="flex:1;cursor:pointer;font-size:12.5px;padding:8px;border-radius:9px;border:1px solid {{ m.bd }};background:{{ m.bg }};color:{{ m.fg }}">{{ m.n }}</button>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <sc-for list="{{ logoSlots }}" as="l" hint-placeholder-count="3">
+        <label onDragOver="{{ l.onOver }}" onDrop="{{ l.onDrop }}" style="display:flex;align-items:center;justify-content:center;height:78px;border-radius:12px;border:1px dashed rgba(255,255,255,.2);background:{{ l.bg }};cursor:pointer;position:relative;overflow:hidden">
+          <input type="file" accept="image/png,image/svg+xml,image/*" onChange="{{ l.onFile }}" style="display:none">
+          <img src="{{ l.url }}" style="max-width:80%;max-height:60%">
+          <span style="position:absolute;bottom:5px;left:9px;font-size:11px;color:{{ l.fg }}">{{ l.n }}</span>
+        </label>
+      </sc-for>
+    </div>
+    <div style="font-size:11.5px;color:#5d636b;line-height:1.45">Feltöltés nélkül helyettesítő DRK jel látszik. PNG/SVG, átlátszó háttérrel.</div>
+    <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">Betűtípus</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <label style="flex:1;cursor:pointer;text-align:center;font-size:12.5px;padding:9px;border-radius:9px;border:1px dashed rgba(255,255,255,.2)"><input type="file" accept=".ttf,.otf,.woff,.woff2" onChange="{{ onFont }}" style="display:none">{{ fontLabel }}</label>
+      <button onClick="{{ onFontReset }}" style="cursor:pointer;font-size:12.5px;padding:9px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8b9097">Inter</button>
+    </div>
+  </sc-if>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;min-height:0;background:#0a0b0d">
+  <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;overflow:auto;padding:22px 24px 40px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+      <img src="{{ curStateIcon }}" style="width:28px;height:28px">
+      <div style="font-size:20px;font-weight:300;letter-spacing:-.01em">{{ curStateName }} · {{ tempLabel }}</div>
+      <div style="font-size:12.5px;color:#8b9097">Szlogen: {{ curSlogan }}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;align-items:start">
+      <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="6">
+        <div style="background:#111316;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:13px;font-weight:500">{{ t.id }}</span><span style="font-size:11.5px;color:#8b9097">{{ t.sub }}</span></div>
+          <div onClick="{{ t.onOpen }}" style="height:400px;display:flex;align-items:center;justify-content:center;background:#08090a;border-radius:10px;cursor:pointer"><canvas ref="{{ t.ref }}" style="max-width:100%;max-height:400px;width:auto;height:auto;display:block;box-shadow:0 10px 30px rgba(0,0,0,.5)"></canvas></div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ t.onOpen }}" style="flex:1;cursor:pointer;font-size:12.5px;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)">Szerkesztés</button>
+            <button onClick="{{ t.onPng }}" style="flex:1;cursor:pointer;font-size:12.5px;padding:8px;border-radius:9px;border:0;background:#f2f3f4;color:#0c0d0f;font-weight:600">PNG letöltés</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ showEditor }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;min-height:0">
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:8px;padding:14px 20px;flex-wrap:wrap">
+        <button onClick="{{ onBack }}" style="cursor:pointer;font-size:12.5px;padding:7px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05)">← Rács</button>
+        <sc-for list="{{ sizeChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.on }}" style="cursor:pointer;font-size:12px;padding:7px 11px;border-radius:99px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.n }}</button>
+        </sc-for>
+      </div>
+      <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px 24px 24px">
+        <canvas ref="{{ editorRef }}" onPointerDown="{{ ed.onDown }}" onPointerMove="{{ ed.onMove }}" onPointerUp="{{ ed.onUp }}" onWheel="{{ ed.onWheel }}" style="max-width:100%;max-height:calc(100vh - 190px);width:auto;height:auto;display:block;cursor:grab;touch-action:none;box-shadow:0 20px 60px rgba(0,0,0,.6)"></canvas>
+      </div>
+    </div>
+    <div style="width:290px;flex:none;border-left:1px solid rgba(255,255,255,.07);background:#0f1012;padding:18px 16px;display:flex;flex-direction:column;gap:16px;overflow:auto">
+      <div><div style="font-size:15px;font-weight:500">{{ ed.id }}</div><div style="font-size:12px;color:#8b9097">{{ ed.sub }}</div></div>
+      <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">Háttér · {{ ed.ratio }}</div>
+      <div style="font-size:12px;line-height:1.45;color:#c9cdd2;background:rgba(159,211,255,.08);border:1px solid rgba(159,211,255,.2);border-radius:10px;padding:9px 11px">Húzd a képet az előnézeten a mozgatáshoz, a görgővel nagyíthatsz. Mozgatáshoz kell egy kis nagyítás.</div>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#8b9097"><span style="display:flex;justify-content:space-between"><span>Pozíció X</span><span>{{ ed.x }}%</span></span><input type="range" min="0" max="100" value="{{ ed.x }}" onInput="{{ ed.onX }}"></label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#8b9097"><span style="display:flex;justify-content:space-between"><span>Pozíció Y</span><span>{{ ed.y }}%</span></span><input type="range" min="0" max="100" value="{{ ed.y }}" onInput="{{ ed.onY }}"></label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#8b9097"><span style="display:flex;justify-content:space-between"><span>Nagyítás</span><span>{{ ed.z }}%</span></span><input type="range" min="100" max="300" value="{{ ed.z }}" onInput="{{ ed.onZ }}"></label>
+      <button onClick="{{ ed.onReset }}" style="cursor:pointer;font-size:12.5px;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8b9097">Alaphelyzet</button>
+      <button onClick="{{ onOverlayToggle }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#131518;cursor:pointer;text-align:left;font-size:12.5px"><span style="width:34px;height:20px;border-radius:99px;background:{{ overlayBg }};position:relative;flex:none"><span style="position:absolute;top:2px;left:{{ overlayLeft }};width:16px;height:16px;border-radius:99px;background:#fff"></span></span>Bakancs zóna és safe zone</button>
+      <button onClick="{{ ed.onPng }}" style="cursor:pointer;font-size:13px;padding:11px;border-radius:10px;border:0;background:#f2f3f4;color:#0c0d0f;font-weight:600">PNG letöltés · {{ ed.id }}</button>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  SIZES=[
+    {id:'1080x1350',w:1080,h:1350,rk:'4x5',ratio:'4:5',kind:'col',sub:'4:5 · feed'},
+    {id:'960x1200',w:960,h:1200,rk:'4x5',ratio:'4:5',kind:'col',sub:'4:5 · feed'},
+    {id:'1080x1080',w:1080,h:1080,rk:'1x1',ratio:'1:1',kind:'sq',sub:'1:1 · négyzet'},
+    {id:'1200x1200',w:1200,h:1200,rk:'1x1',ratio:'1:1',kind:'sq',sub:'1:1 · négyzet'},
+    {id:'1080x1920',w:1080,h:1920,rk:'9x16',ratio:'9:16',kind:'story',sub:'9:16 · story'},
+    {id:'1200x628',w:1200,h:628,rk:'16x9',ratio:'16:9',kind:'wide',sub:'fekvő · link/PPC'}];
+  STATES=[{k:'snow',n:'Havas',slug:'havas'},{k:'ice',n:'Jeges',slug:'jeges'},{k:'rain',n:'Esős',slug:'esos'},{k:'wind',n:'Szeles',slug:'szeles'},{k:'fog',n:'Ködös',slug:'kodos'},{k:'sunny',n:'Napos hideg',slug:'napos-hideg'},{k:'cold',n:'Általános hideg',slug:'altalanos-hideg'}];
+  CODES=[[0,'Derült'],[1,'Túlnyomóan derült'],[2,'Részben felhős'],[3,'Borult'],[45,'Köd'],[48,'Zúzmarás köd'],[51,'Gyenge szitálás'],[53,'Szitálás'],[55,'Erős szitálás'],[56,'Ónos szitálás'],[57,'Erős ónos szitálás'],[61,'Gyenge eső'],[63,'Eső'],[65,'Erős eső'],[66,'Ónos eső'],[67,'Erős ónos eső'],[68,'Havas eső'],[71,'Gyenge havazás'],[73,'Havazás'],[75,'Erős havazás'],[77,'Hószemcsék'],[80,'Gyenge zápor'],[81,'Zápor'],[82,'Heves zápor'],[85,'Hózápor'],[86,'Erős hózápor'],[95,'Zivatar'],[96,'Zivatar jégesővel'],[99,'Erős zivatar jégesővel']];
+  DAYS=['Vasárnap','Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat'];
+  PERSIST=['wx','corrected','stateOverride','textOverride','cfg','slogans','sel','custom','cta','weeklySq','logoMode','overlay','fontMode','adj'];
+  bgP={};bgReady={};cvs={};rf={};logoImgs={white:null,black:null,beige:null};mem={};icCache={};tintCache={};
+  state={booted:false,authed:false,pw:'',pwErr:false,tab:'weather',view:'grid',wx:this.defWx(),api:null,apiStatus:'idle',apiTime:'',corrected:false,stateOverride:'auto',textOverride:'',cfg:this.defCfg(),
+    slogans:{A:'Csökken a hőmérséklet. A stílus marad.',B:'Mínuszok jönnek. Az Everest marad.',C:'Mínusz fokok. Maximum stílus.'},sel:this.defSel(),custom:'',cta:{on:false,text:'Vásárolj most'},weeklySq:false,logoMode:'auto',overlay:false,fontMode:'inter',fontName:'',adj:{},manage:'snow',bgUrls:{},bgCustom:{},logoUrls:{white:'',black:'',beige:''},busy:null};
+
+  defCfg(){return {snow:{label:'Havas',alert:'Hóriasztás'},ice:{label:'Ónos eső',alert:'Fagyriasztás'},rain:{label:'Esős',alert:'Figyelmeztetés'},wind:{label:'Erős szél',alert:'Figyelmeztetés'},fog:{label:'Ködös',alert:'Figyelmeztetés'},sunny:{label:'Napos, hideg',alert:'Figyelmeztetés'},cold:{label:'Hideg',alert:'Figyelmeztetés'}}}
+  defSel(){return {cold:'A',wind:'A',fog:'A',rain:'A',ice:'B',sunny:'B',snow:'C'}}
+  defWx(){return {city:'Budapest',temp:-2,feels:-5,wind:12,code:2,isDay:1,max:3,min:-5,
+    hours:[['Most',-2,2],['19:00',-2,3],['20:00',-3,3],['21:00',-3,3],['22:00',-4,3],['23:00',-4,0]].map(a=>({label:a[0],temp:a[1],code:a[2],isDay:0})),
+    days:[['Ma',-5,3,2],['Kedd',-6,1,3],['Szerda',-4,2,71],['Csütörtök',-3,4,61],['Péntek',-2,5,3],['Szombat',-3,3,0],['Vasárnap',-5,2,2]].map(a=>({label:a[0],min:a[1],max:a[2],code:a[3]}))}}
+
+  // ---------- lifecycle
+  componentDidMount(){
+    let au=false;try{au=localStorage.getItem('drk_auth')==='1'}catch(e){}
+    let o={};try{o=JSON.parse(localStorage.getItem('drk_everest_v1')||'{}')||{}}catch(e){}
+    const p={booted:true,authed:au};
+    for(const k of this.PERSIST)if(o[k]!==undefined)p[k]=o[k];
+    if(o.cfg)p.cfg={...this.defCfg(),...o.cfg};if(o.sel)p.sel={...this.defSel(),...o.sel};if(o.slogans)p.slogans={...this.state.slogans,...o.slogans};if(o.cta)p.cta={...this.state.cta,...o.cta};
+    this.setState(p);
+    if(au)setTimeout(()=>this.initApp(),0);
+  }
+  componentDidUpdate(){this.sp();if(this.state.booted){clearTimeout(this._sv);this._sv=setTimeout(()=>{try{const o={};for(const k of this.PERSIST)o[k]=this.state[k];localStorage.setItem('drk_everest_v1',JSON.stringify(o))}catch(e){}},400)}}
+  async initApp(){
+    this.ensureFonts();this.fetchWx();this.slots(this.state.manage);
+    {const i=new Image();i.onload=()=>{this.evImg=i;this.sp()};i.src='assets/logo/everest.png'}
+    for(const c of ['white','black','beige']){const b=await this.dbGet('logo:'+c);if(b)this.setLogo(c,b);else if(c!=='white')this.loadLogoUrl(c,'assets/logo/'+c+'.png')}
+    const f=await this.dbGet('font');if(f)this.applyFont(f,f.name||'saját');
+  }
+  async ensureFonts(){if(!this._fp)this._fp=Promise.all(['200','300','400','500','600','700'].map(w=>document.fonts.load(w+' 40px Montserrat').catch(()=>{}))).then(()=>this.sp());return this._fp}
+  sp(){if(this._raf)return;this._raf=requestAnimationFrame(()=>{this._raf=0;try{this.paint()}catch(e){console.error(e)}})}
+
+  // ---------- storage
+  idb(){return this._db||(this._db=new Promise((res,rej)=>{try{const r=indexedDB.open('drk-everest',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))}
+  async dbGet(k){try{const db=await this.idb();return await new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)})}catch(e){return this.mem[k]||null}}
+  async dbSet(k,v){this.mem[k]=v;try{const db=await this.idb();await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}}
+  async dbDel(k){delete this.mem[k];try{const db=await this.idb();await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}}
+
+  // ---------- weather
+  async fetchWx(){
+    this.setState({apiStatus:'loading'});
+    try{
+      const u='https://api.open-meteo.com/v1/forecast?latitude=47.4979&longitude=19.0402&timezone=Europe%2FBudapest&wind_speed_unit=kmh&forecast_days=7&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min';
+      const r=await fetch(u);if(!r.ok)throw new Error('http '+r.status);
+      const api=this.parseWx(await r.json());
+      const t=new Date().toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'});
+      this.setState(s=>({api,apiStatus:'ok',apiTime:t,wx:s.corrected?s.wx:JSON.parse(JSON.stringify(api))}));
+    }catch(e){this.setState({apiStatus:'err',api:this.state.api})}
+  }
+  parseWx(j){
+    const c=j.current,h=j.hourly,d=j.daily;let i=h.time.findIndex(t=>t>c.time);if(i<0)i=0;
+    const hours=[{label:'Most',temp:Math.round(c.temperature_2m),code:c.weather_code,isDay:c.is_day}];
+    for(let k=0;k<5;k++){const n=i+k;hours.push({label:h.time[n].slice(11,16),temp:Math.round(h.temperature_2m[n]),code:h.weather_code[n],isDay:h.is_day[n]})}
+    const days=d.time.slice(0,7).map((t,n)=>({label:n===0?'Ma':this.DAYS[new Date(t+'T12:00:00').getDay()],min:Math.round(d.temperature_2m_min[n]),max:Math.round(d.temperature_2m_max[n]),code:d.weather_code[n]}));
+    return {city:'Budapest',temp:Math.round(c.temperature_2m),feels:Math.round(c.apparent_temperature),wind:Math.round(c.wind_speed_10m),code:c.weather_code,isDay:c.is_day,max:days[0].max,min:days[0].min,hours,days};
+  }
+  editWx(fn){this.setState(s=>{const wx=JSON.parse(JSON.stringify(s.wx));fn(wx);return {wx,corrected:true}})}
+  detect(wx){
+    const c=+wx.code,t=parseFloat(wx.temp),w=parseFloat(wx.wind)||0;
+    if((c>=71&&c<=77)||c===85||c===86||c===68||c===69)return 'snow';
+    if(c===56||c===57||c===66||c===67||(t<=-3&&!(c>=51)))return 'ice';
+    if((c>=51&&c<=55)||(c>=61&&c<=65)||(c>=80&&c<=82)||c>=95)return 'rain';
+    if(w>=30)return 'wind';
+    if(c===45||c===48)return 'fog';
+    if(c===0||c===1)return 'sunny';
+    return 'cold';
+  }
+  model(ov={}){
+    const s=this.state,wx=s.wx,auto=this.detect(wx),st=s.stateOverride==='auto'?auto:s.stateOverride,cfg=s.cfg[st],sk=ov.slogan||s.sel[st];
+    const texts={...s.slogans,custom:s.custom},fz=[56,57,66,67].includes(+wx.code);
+    let label=s.textOverride||cfg.label;if(!s.textOverride&&st==='ice'&&cfg.label==='Ónos eső'&&!fz)label='Fagyos idő';
+    const icon={snow:'snow',ice:fz?'freezing':'frost',rain:'rain',wind:'wind',fog:'fog',sunny:'sun',cold:'cloud'}[st];
+    return {state:st,auto,wx,label,alert:cfg.alert,sk,slogan:texts[sk]||'',cta:s.cta,weeklySq:s.weeklySq,logoMode:s.logoMode,adj:s.adj[st]||{},icon};
+  }
+  fmt(v){const n=parseFloat(v);return isNaN(n)?'–':Math.round(n)+'°'}
+  iconFor(c,day){c=+c;if(c<=1)return day?'sun':'moon';if(c===2)return day?'partly':'partlyNight';if(c===3)return 'cloud';if(c===45)return 'fog';if(c===48)return 'frost';if(c<=55)return 'drizzle';if(c===56||c===57||c===66||c===67)return 'freezing';if(c<=65)return 'rain';if(c===68||c===69)return 'sleet';if(c<=77)return 'snow';if(c<=82)return 'showers';if(c<=86)return 'snowshowers';return 'thunder'}
+
+  // ---------- icons
+  cl(dx,dy,w){return `M${7+dx} ${15+dy}a3.5 3.5 0 0 1-.3-6.99a5 5 0 0 1 9.6-.4a3.7 3.7 0 0 1 .7 7.4z`}
+  circ(x,y,r){return `M${x-r} ${y}a${r} ${r} 0 1 0 ${2*r} 0a${r} ${r} 0 1 0 ${-2*r} 0`}
+  ast(cx,cy,r){let d='';for(const a of [90,30,150]){const t=a*Math.PI/180,dx=Math.cos(t)*r,dy=Math.sin(t)*r;d+=`M${(cx-dx).toFixed(2)} ${(cy-dy).toFixed(2)}L${(cx+dx).toFixed(2)} ${(cy+dy).toFixed(2)}`}return d}
+  flake(cx,cy,R,b){let d='';for(let i=0;i<6;i++){const a=(i*60-90)*Math.PI/180;d+=`M${cx} ${cy}L${(cx+R*Math.cos(a)).toFixed(2)} ${(cy+R*Math.sin(a)).toFixed(2)}`;const bx=cx+b*Math.cos(a),by=cy+b*Math.sin(a);for(const da of [-45,45]){const aa=a+da*Math.PI/180;d+=`M${bx.toFixed(2)} ${by.toFixed(2)}L${(bx+2.6*Math.cos(aa)).toFixed(2)} ${(by+2.6*Math.sin(aa)).toFixed(2)}`}}return d}
+  icons(){
+    if(this._ic)return this._ic;
+    const cl=(a,b)=>this.cl(a,b),moon='M19.5 14.5A8 8 0 0 1 9.5 4.5 8 8 0 1 0 19.5 14.5z';
+    const sunS=[{d:this.circ(7,7,2.8)+'M7 1.6v1.5M1.6 7h1.5M3.3 3.3l1 1M10.7 3.3l-1 1'}];
+    const shw={s:.82,x:4.2,y:3};
+    return this._ic={
+      sun:[{d:this.circ(12,12,4)+'M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6'}],
+      moon:[{d:moon},{d:'M18 3.5v3M16.5 5h3'}],
+      partly:[{d:this.circ(7.5,7.5,2.9)+'M7.5 1.4v1.5M1.4 7.5h1.5M3.2 3.2l1 1M11.8 3.2l-1 1M3.2 11.8l1-1'},{d:cl(0,4),k:1}],
+      partlyNight:[{d:moon,s:.6,x:1,y:0},{d:cl(0,4),k:1}],
+      cloud:[{d:cl(0,2.4)}],
+      fog:[{d:cl(0,-1.5)},{d:'M4 16.8h16M7 20.4h10'}],
+      drizzle:[{d:cl(0,-1.5)},{d:'M8 16.6l-.5 1.4M12 16.6l-.5 1.4M16 16.6l-.5 1.4M10 20l-.5 1.4M14 20l-.5 1.4'}],
+      rain:[{d:cl(0,-1.5)},{d:'M8.5 16.5l-1.4 3.6M12.8 16.5l-1.4 3.6M17.1 16.5l-1.4 3.6'}],
+      freezing:[{d:cl(0,-1.5)},{d:'M8 16.5l-1.3 3.4M12.5 16.5l-1.3 3.4M17 16.8l1.7 2.2-1.7 2.2-1.7-2.2z'}],
+      sleet:[{d:cl(0,-1.5)},{d:'M8 16.5l-1.2 3.4M17.5 16.5l-1.2 3.4'+this.ast(12.5,18.6,1.7)}],
+      snow:[{d:cl(0,-1.5)},{d:this.ast(7.5,18,1.6)+this.ast(12,18,1.6)+this.ast(16.5,18,1.6)}],
+      showers:[{d:sunS[0].d},{d:cl(0,0),k:1,...shw},{d:'M10 17.4l-1 2.8M14 17.4l-1 2.8M18 17.4l-1 2.8'}],
+      snowshowers:[{d:sunS[0].d},{d:cl(0,0),k:1,...shw},{d:this.ast(10,19,1.4)+this.ast(14,19,1.4)+this.ast(18,19,1.4)}],
+      thunder:[{d:cl(0,-1.5)},{d:'M13 14.8l-3 4.2h4.2l-2.6 3.8'}],
+      wind:[{d:'M3 9h9.5a2.5 2.5 0 1 0-2.5-2.5M3 13h13.5a2.8 2.8 0 1 1-2.8 2.8M3 17h6.5a2 2 0 1 1-2 2'}],
+      frost:[{d:this.flake(12,12,9.2,5.6)}],
+      warn:[{d:'M12 3.5L21.5 20h-19zM12 10v4.5M12 17.4v.05'}],
+      clock:[{d:this.circ(12,12,9)+'M12 7v5l3 2'}],
+      cal:[{d:'M4 6.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M8 3v3M16 3v3'}]
+    };
+  }
+  iconCv(name,px,color){
+    const key=name+'|'+px+'|'+color;if(this.icCache[key])return this.icCache[key];
+    const cv=document.createElement('canvas');cv.width=cv.height=px;const g=cv.getContext('2d');g.scale(px/24,px/24);g.lineCap='round';g.lineJoin='round';g.strokeStyle=color;g.fillStyle='#000';
+    for(const op of (this.icons()[name]||[])){
+      g.save();const s=op.s||1;if(op.s){g.translate(op.x||0,op.y||0);g.scale(s,s)}
+      const p=new Path2D(op.d);
+      if(op.k){g.globalCompositeOperation='destination-out';g.lineWidth=(1.75+2.6)/s;g.fill(p);g.stroke(p);g.globalCompositeOperation='source-over'}
+      g.lineWidth=1.75/s;g.stroke(p);g.restore();
+    }
+    return this.icCache[key]=cv;
+  }
+  iconUrl(n){const k='u|'+n;if(!this.icCache[k])this.icCache[k]=this.iconCv(n,64,'#ffffff').toDataURL();return this.icCache[k]}
+  ico(c,name,x,y,size,color,sc){const px=Math.max(16,Math.round(size*sc*2/8)*8);c.drawImage(this.iconCv(name,px,color||'#ffffff'),x,y,size,size)}
+
+  // ---------- backgrounds / logos
+  loadBg(st,rk){
+    const k=st+'|'+rk;if(this.bgP[k])return this.bgP[k];
+    return this.bgP[k]=(async()=>{
+      let url,custom=false;const b=await this.dbGet('bg:'+k);
+      if(b){url=URL.createObjectURL(b);custom=true}else url='assets/'+(st==='cold'?'sunny':st)+'/'+rk+'.jpg';
+      const img=await new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=url});
+      if(img)this.bgReady[k]=img;
+      this.setState(s=>({bgUrls:{...s.bgUrls,[k]:url},bgCustom:{...s.bgCustom,[k]:custom}}));this.sp();return img;
+    })();
+  }
+  getImg(st,rk){const k=st+'|'+rk;if(this.bgReady[k])return this.bgReady[k];this.loadBg(st,rk);return null}
+  slots(st){for(const rk of ['1x1','4x5','9x16','16x9'])this.loadBg(st,rk)}
+  async upBg(st,rk,file){if(!file)return;const k=st+'|'+rk;await this.dbSet('bg:'+k,file);delete this.bgP[k];delete this.bgReady[k];await this.loadBg(st,rk)}
+  async clearBg(st,rk){const k=st+'|'+rk;await this.dbDel('bg:'+k);delete this.bgP[k];delete this.bgReady[k];await this.loadBg(st,rk)}
+  setLogo(c,blob){this.loadLogoUrl(c,URL.createObjectURL(blob))}
+  loadLogoUrl(c,url){const i=new Image();i.onload=()=>{this.logoImgs[c]=i;this.tintCache={};this.setState(s=>({logoUrls:{...s.logoUrls,[c]:url}}));this.sp()};i.src=url}
+  async upLogo(c,file){if(!file)return;await this.dbSet('logo:'+c,file);this.setLogo(c,file)}
+  async applyFont(blob,name){try{const f=new FontFace('DRKCustom',await blob.arrayBuffer(),{weight:'100 900'});await f.load();document.fonts.add(f);this._cf=true;this.setState({fontMode:'custom',fontName:name})}catch(e){}}
+  async upFont(file){if(!file)return;await this.dbSet('font',file);this.applyFont(file,file.name)}
+  fallbackLogo(color){
+    const k='fb|'+color;if(this.tintCache[k])return this.tintCache[k];
+    const cv=document.createElement('canvas');cv.width=720;cv.height=200;const g=cv.getContext('2d');g.fillStyle=color;g.strokeStyle=color;g.lineWidth=9;g.lineCap='round';
+    g.font='700 150px Montserrat,Arial,sans-serif';g.textBaseline='alphabetic';
+    const wD=g.measureText('D').width,wR=g.measureText('R').width;let x=110;
+    const xm=(cx)=>{g.beginPath();g.moveTo(cx-14,86);g.lineTo(cx+14,114);g.moveTo(cx+14,86);g.lineTo(cx-14,114);g.stroke()};
+    xm(50);g.fillText('D',x,150);x+=wD+4;g.save();g.translate(x+wR,0);g.scale(-1,1);g.fillText('R',0,150);g.restore();x+=wR+4;g.fillText('K',x,150);x+=g.measureText('K').width+44;xm(x);
+    const o=document.createElement('canvas');o.width=x+40;o.height=200;o.getContext('2d').drawImage(cv,0,0);return this.tintCache[k]=o;
+  }
+  logoSrc(color){
+    const u=this.logoImgs[color];if(u)return u;
+    const o=this.logoImgs.black||this.logoImgs.white||this.logoImgs.beige;
+    if(o){const k='t|'+color;if(!this.tintCache[k]){const cv=document.createElement('canvas');cv.width=o.naturalWidth||400;cv.height=o.naturalHeight||120;const g=cv.getContext('2d');g.drawImage(o,0,0,cv.width,cv.height);g.globalCompositeOperation='source-in';g.fillStyle={white:'#ffffff',black:'#0b0b0c',beige:'#e8d8c1'}[color];g.fillRect(0,0,cv.width,cv.height);this.tintCache[k]=cv}return this.tintCache[k]}
+    return this.fallbackLogo({white:'#ffffff',black:'#0b0b0c',beige:'#e8d8c1'}[color]);
+  }
+
+  // ---------- drawing primitives
+  ff(){return this.state.fontMode==='custom'&&this._cf?'"DRKCustom",Montserrat,sans-serif':'Montserrat,"Helvetica Neue",Arial,sans-serif'}
+  rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+  setF(c,fs,w,ls){c.font=`${w} ${fs}px ${this.ff()}`;if('letterSpacing' in c)c.letterSpacing=(ls||0)+'px'}
+  mw(c,s,fs,w,ls){this.setF(c,fs,w,ls);return c.measureText(s).width}
+  T(c,s,x,y,fs,w,col,al,ls){this.setF(c,fs,w,ls);c.fillStyle=col;c.textAlign=al||'left';c.textBaseline='alphabetic';ls=ls||0;if(al==='center')x+=ls/2;else if(al==='right')x+=ls;c.fillText(s,x,y);if('letterSpacing' in c)c.letterSpacing='0px'}
+  wrap(c,s,maxW,fs,w){this.setF(c,fs,w,-.3);const out=[];let line='';for(const wd of String(s).split(/\s+/).filter(Boolean)){const t=line?line+' '+wd:wd;if(c.measureText(t).width>maxW&&line){out.push(line);line=wd}else line=t}if(line)out.push(line);return out}
+  blur(src,r){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const g=c.getContext('2d');
+    if(this._fs===undefined)this._fs='filter' in g;
+    if(this._fs){g.filter=`blur(${r}px)`;g.drawImage(src,0,0)}else{const f=Math.max(2,r/3),t=document.createElement('canvas');t.width=Math.ceil(c.width/f);t.height=Math.ceil(c.height/f);t.getContext('2d').drawImage(src,0,0,t.width,t.height);g.imageSmoothingQuality='high';g.drawImage(t,0,0,c.width,c.height)}return c}
+  glass(c,bl,W,H,x,y,w,h){c.save();this.rr(c,x,y,w,h,20);c.clip();c.drawImage(bl,0,0,W,H);c.fillStyle='rgba(8,12,18,.10)';c.fillRect(x,y,w,h);c.fillStyle='rgba(255,255,255,.22)';c.fillRect(x,y,w,h);c.restore();this.rr(c,x+.5,y+.5,w-1,h-1,19.5);c.strokeStyle='rgba(255,255,255,.25)';c.lineWidth=1;c.stroke()}
+  drawBg(b,W,H,sz,m,img){
+    const a=this.adjOf(m.state,sz.id);
+    if(img&&img.naturalWidth){const s=Math.max(W/img.naturalWidth,H/img.naturalHeight)*(a.z/100),dw=img.naturalWidth*s,dh=img.naturalHeight*s;b.drawImage(img,(W-dw)*(a.x/100),(H-dh)*(a.y/100),dw,dh)}
+    else{const g=b.createLinearGradient(0,0,W,H);g.addColorStop(0,'#2a3340');g.addColorStop(1,'#10141a');b.fillStyle=g;b.fillRect(0,0,W,H);b.fillStyle='rgba(255,255,255,.35)';b.font='500 28px sans-serif';b.textAlign='center';b.fillText('Háttérkép betöltése…',W/2,H/2)}
+  }
+  scrim(b,W,H,s){
+    let g;
+    if(s.l){g=b.createLinearGradient(0,0,W*s.le,0);g.addColorStop(0,`rgba(6,10,16,${s.l})`);g.addColorStop(1,'rgba(6,10,16,0)');b.fillStyle=g;b.fillRect(0,0,W,H)}
+    if(s.t){g=b.createLinearGradient(0,0,0,H*s.te);g.addColorStop(0,`rgba(6,10,16,${s.t})`);g.addColorStop(1,'rgba(6,10,16,0)');b.fillStyle=g;b.fillRect(0,0,W,H)}
+    if(s.b){g=b.createLinearGradient(0,H,0,H*(1-s.be));g.addColorStop(0,`rgba(6,10,16,${s.b})`);g.addColorStop(1,'rgba(6,10,16,0)');b.fillStyle=g;b.fillRect(0,0,W,H)}
+  }
+  lum(bg,sc,r){try{const x=Math.max(0,Math.floor(r.x*sc)),y=Math.max(0,Math.floor(r.y*sc)),w=Math.max(1,Math.min(bg.width-x,Math.floor(r.w*sc))),h=Math.max(1,Math.min(bg.height-y,Math.floor(r.h*sc)));const d=bg.getContext('2d').getImageData(x,y,w,h).data;let s=0,n=0;for(let i=0;i<d.length;i+=16){s+=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];n++}return s/n/255}catch(e){return 0}}
+
+  // ---------- layout
+  layout(sz,m){
+    const W=sz.w,H=sz.h,f=W/1080;
+    if(sz.kind==='col'||sz.kind==='sq'){
+      const sq=sz.kind==='sq';
+      const p=sq?{M:52,col:450,logoY:52,logoH:56,tempY:48,tempS:.8,hourlyH:186,weeklyH:300,alertFs:34,ctaH:60,gap:20,zone:[.48,.46,.52,.5]}:{M:56,col:450,logoY:56,logoH:60,tempY:56,tempS:.86,hourlyH:188,weeklyH:392,alertFs:36,ctaH:64,gap:22,zone:[.48,.46,.52,.44]};
+      if(sz.id==='960x1200'){p.col=480;p.tempS=.84;p.hourlyH=196}
+      if(sz.id==='1200x1200'){p.hourlyH=192}
+      const M=p.M*f;
+      return {kind:'col',W,H,M,gap:p.gap*f,col:p.col*f,logo:{al:'right',x:W-M,y:p.logoY*f,h:p.logoH*f},ever:'below',temp:{x:M,y:p.tempY*f,s:p.tempS*f,al:'left',maxW:p.col*f},hourlyH:p.hourlyH*f,weeklyH:p.weeklyH*f,weekly:sq?m.weeklySq:true,alertFs:p.alertFs*f,ctaH:p.ctaH*f,zone:p.zone,scrim:{l:.55,le:.78,t:.3,te:.3,b:.45,be:.42},inset:M};
+    }
+    if(sz.kind==='story')return {kind:'story',W,H,M:60,gap:20,logo:{al:'center',x:W/2,y:92,h:76},ever:'below',temp:{x:W/2,y:272,s:.8,al:'center',maxW:W-120},hourlyH:210,alertFs:50,ctaH:76,zone:[.1,.55,.8,.30],scrim:{t:.6,te:.55,b:.3,be:.18},inset:60,safe:[{y:0,h:250,l:'CSAK LOGÓ · felső 250 px'},{y:H*.85,h:H*.15,l:'SAFE ZONE · alsó 15%'}]};
+    return {kind:'wide',W,H,M:40,gap:16,logo:{al:'left',x:40,y:34,h:38},ever:'right',temp:{x:40,y:96,s:.6,al:'left',maxW:270},hourlyX:330,hourlyY:100,hourlyW:400,hourlyH:196,alertW:690,alertFs:32,ctaH:52,zone:[.62,.25,.38,.65],scrim:{l:.6,le:.72,t:.35,te:.35,b:.4,be:.45},inset:40};
+  }
+  alertLay(c,w,fs,m){const pad=fs*.62,hdr=fs*.5,gap=fs*.3,lh=fs*1.2,lines=this.wrap(c,m.slogan,w-2*pad,fs,500);return {pad,hdr,gap,lh,lines,fs,h:pad+hdr+gap+Math.max(1,lines.length)*lh+pad*.8}}
+  place(c,L,m){
+    const R={},g=L.gap,W=L.W,H=L.H,aw=L.kind==='col'?L.col:L.kind==='wide'?L.alertW:W-2*L.M,A=this.alertLay(c,aw,L.alertFs,m),ctaH=m.cta.on?L.ctaH:0;
+    R.temp=L.temp;
+    if(L.kind==='story'){let y=L.temp.y+330*L.temp.s+g;R.hourly={x:L.M,y,w:W-2*L.M,h:L.hourlyH};y+=L.hourlyH+g;R.alert={x:L.M,y,w:aw,h:A.h,A};y+=A.h+g;if(ctaH)R.cta={y,h:ctaH,x:W/2,al:'center'}}
+    else{let bottom=H-L.M;if(ctaH){R.cta={y:bottom-ctaH,h:ctaH,x:L.M,al:'left'};bottom-=ctaH+g}
+      R.alert={x:L.M,y:bottom-A.h,w:aw,h:A.h,A};
+      if(L.kind==='wide')R.hourly={x:L.hourlyX,y:L.hourlyY,w:L.hourlyW,h:L.hourlyH};
+      else{const y=L.temp.y+330*L.temp.s+g;R.hourly={x:L.M,y,w:L.col,h:L.hourlyH};if(L.weekly){const wy=y+L.hourlyH+g,wh=Math.min(L.weeklyH,R.alert.y-g-wy);if(wh>=150)R.weekly={x:L.M,y:wy,w:L.col,h:wh}}}}
+    return R;
+  }
+
+  // ---------- main draw
+  draw(cv,sz,m,o){
+    const W=sz.w,H=sz.h,sc=o.scale,cw=Math.round(W*sc),ch=Math.round(H*sc);
+    if(cv.width!==cw)cv.width=cw;if(cv.height!==ch)cv.height=ch;
+    const L=this.layout(sz,m),bg=document.createElement('canvas');bg.width=cw;bg.height=ch;
+    const b=bg.getContext('2d');b.scale(sc,sc);this.drawBg(b,W,H,sz,m,o.img);this.scrim(b,W,H,L.scrim);
+    const bl=this.blur(bg,20*sc),c=cv.getContext('2d');
+    c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cw,ch);c.drawImage(bg,0,0);c.setTransform(sc,0,0,sc,0,0);
+    const R=this.place(c,L,m);
+    // logo + EVEREST
+    const s0=this.logoSrc('white'),asp=(s0.naturalWidth||s0.width)/(s0.naturalHeight||s0.height),lh=L.logo.h,lw=lh*asp,efs=lh*.42,els=efs*.34;
+    const lx=L.logo.al==='right'?L.logo.x-lw:L.logo.al==='center'?L.logo.x-lw/2:L.logo.x,ly=L.logo.y;
+    const evI=this.evImg,ew=evI?lh*(L.ever==='right'?4:3.4):this.mw(c,'EVEREST',efs,600,els),eh=evI?ew*evI.naturalHeight/evI.naturalWidth:efs;let ex,ey,eal,rect;
+    if(L.ever==='below'){ey=evI?ly+lh+lh*.3:ly+lh+efs*1.6;ex=L.logo.x;eal=L.logo.al;const bw=Math.max(lw,ew);rect={x:L.logo.al==='right'?L.logo.x-bw:L.logo.al==='center'?L.logo.x-bw/2:L.logo.x,y:ly,w:bw,h:ey+(evI?eh:0)-ly}}
+    else{ex=lx+lw+lh*.5;ey=evI?ly+lh*.5-eh/2:ly+lh*.5+efs*.36;eal='left';rect={x:lx,y:ly,w:lw+lh*.5+ew,h:lh}}
+    const lc=m.logoMode==='auto'?(this.lum(bg,sc,{x:rect.x-10,y:rect.y-10,w:rect.w+20,h:rect.h+20})>.62?'black':'white'):m.logoMode;
+    c.drawImage(this.logoSrc(lc),lx,ly,lw,lh);
+    const ecol={white:'#ffffff',black:'#0b0b0c',beige:'#e8d8c1'}[lc];
+    if(evI){const k='ev|'+lc;if(!this.tintCache[k]){const t=document.createElement('canvas');t.width=evI.naturalWidth;t.height=evI.naturalHeight;const g=t.getContext('2d');g.drawImage(evI,0,0);g.globalCompositeOperation='source-in';g.fillStyle=ecol;g.fillRect(0,0,t.width,t.height);this.tintCache[k]=t}
+      c.drawImage(this.tintCache[k],eal==='right'?ex-ew:eal==='center'?ex-ew/2:ex,ey,ew,eh)}
+    else this.T(c,'EVEREST',ex,ey,efs,600,ecol,eal,els);
+    // temp block
+    this.tempBlock(c,R.temp,m,sc);
+    this.hourly(c,bl,W,H,R.hourly,m,sc);
+    if(R.weekly)this.weekly(c,bl,W,H,R.weekly,m);
+    this.alertDraw(c,bl,W,H,R.alert,m,sc);
+    if(R.cta){const q=R.cta,fs=q.h*.4,tw=this.mw(c,m.cta.text,fs,600,0),w=tw+q.h*1.1,x=q.al==='center'?q.x-w/2:q.x;this.rr(c,x,q.y,w,q.h,q.h/2);c.fillStyle='#ffffff';c.fill();this.T(c,m.cta.text,x+w/2,q.y+q.h/2+fs*.35,fs,600,'#0b0b0c','center',0)}
+    if(o.overlay)this.overlay(c,L,sz,sc);
+  }
+  tempBlock(c,t,m,sc){
+    const {x,y,s,al}=t,wx=m.wx;c.save();c.shadowColor='rgba(0,0,0,.28)';c.shadowBlur=24*sc;
+    this.T(c,wx.city||'Budapest',x,y+36*s,40*s,500,'rgba(255,255,255,.96)',al,0);
+    const str=this.fmt(wx.temp);let fs=250*s;const w=this.mw(c,str,fs,200,-4*s);if(t.maxW&&w>t.maxW)fs*=t.maxW/w;
+    const tb=y+50*s+.727*fs;this.T(c,str,x,tb,fs,200,'#ffffff',al,-4*s);
+    const cb=tb+50*s,ic=36*s,tw=this.mw(c,m.label,34*s,400,0),tot=ic+10*s+tw,sx=al==='center'?x-tot/2:x;
+    this.ico(c,m.icon,sx,cb-ic*.85,ic,'#fff',sc);this.T(c,m.label,sx+ic+10*s,cb,34*s,400,'rgba(255,255,255,.96)','left',0);
+    this.T(c,`Max. ${this.fmt(wx.max)}  Min. ${this.fmt(wx.min)}`,x,cb+44*s,32*s,400,'rgba(255,255,255,.92)',al,0);
+    c.restore();
+  }
+  head(c,r,icon,title,sc){
+    const pad=Math.round(r.h*.09),fs=Math.max(14,Math.min(r.h*.095,26)),ic=fs*1.15;let f=fs;const maxW=r.w-2*pad-ic-8;
+    const tw=this.mw(c,title,f,500,.6);if(tw>maxW)f*=maxW/tw;
+    this.ico(c,icon,r.x+pad,r.y+pad+fs*.05,ic,'rgba(255,255,255,.75)',sc);this.T(c,title,r.x+pad+ic+8,r.y+pad+fs*.9,f,500,'rgba(255,255,255,.78)','left',.6);
+    const dy=r.y+pad+fs*1.15+pad*.4;c.fillStyle='rgba(255,255,255,.2)';c.fillRect(r.x+pad,dy,r.w-2*pad,1);return {pad,dy};
+  }
+  hourly(c,bl,W,H,r,m,sc){
+    this.glass(c,bl,W,H,r.x,r.y,r.w,r.h);const {pad,dy}=this.head(c,r,'clock','ÓRÁS ELŐREJELZÉS (KÖVETKEZŐ 6 ÓRA)',sc);
+    const hs=m.wx.hours.slice(0,6),cw=(r.w-2*pad)/6,Hc=r.y+r.h-pad-dy,tfs=Math.max(14,Math.min(cw*.27,34)),ifs=Math.min(cw*.62,Hc*.4),vfs=Math.max(16,Math.min(cw*.3,40)),g=Hc*.07,start=dy+(Hc-(tfs+ifs+vfs+2*g))/2;
+    hs.forEach((h,i)=>{const cx=r.x+pad+cw*(i+.5);
+      this.T(c,h.label,cx,start+tfs*.78,tfs,i===0?600:400,'rgba(255,255,255,.92)','center',0);
+      this.ico(c,this.iconFor(h.code,h.isDay),cx-ifs/2,start+tfs+g,ifs,'#fff',sc);
+      this.T(c,this.fmt(h.temp),cx,start+tfs+g+ifs+g+vfs*.78,vfs,500,'#fff','center',0)});
+  }
+  weekly(c,bl,W,H,r,m){
+    const sc=this._sc||1;this.glass(c,bl,W,H,r.x,r.y,r.w,r.h);const {pad,dy}=this.head(c,r,'cal','HETI ELŐREJELZÉS',this._sc);
+    const ds=m.wx.days.slice(0,7),rh=(r.y+r.h-pad*.6-dy-4)/ds.length,iw=r.w-2*pad,x0=r.x+pad,dfs0=Math.min(rh*.46,28),dmx=Math.max(...ds.map(d=>this.mw(c,String(d.label),dfs0,500,0))),dfs=dmx>iw*.27?dfs0*iw*.27/dmx:dfs0,vfs=Math.min(rh*.44,26),isz=Math.min(rh*.8,40);
+    const mins=ds.map(d=>parseFloat(d.min)),maxs=ds.map(d=>parseFloat(d.max)),lo=Math.min(...mins.filter(n=>!isNaN(n)),0),hi=Math.max(...maxs.filter(n=>!isNaN(n)),1),rng=Math.max(1,hi-lo);
+    const iconX=x0+iw*.28,minR=iconX+isz+10+iw*.12,bx=minR+12,maxW=iw*.12,bx2=x0+iw-maxW-12;
+    ds.forEach((d,i)=>{const cy=dy+4+rh*i+rh/2;
+      if(i>0){c.fillStyle='rgba(255,255,255,.12)';c.fillRect(x0,dy+4+rh*i,iw,1)}
+      this.T(c,d.label,x0,cy+dfs*.36,dfs,500,'#fff','left',0);
+      this.ico(c,this.iconFor(d.code,1),iconX,cy-isz/2,isz,'#fff',this._sc);
+      this.T(c,this.fmt(d.min),minR,cy+vfs*.36,vfs,400,'rgba(255,255,255,.7)','right',0);
+      this.T(c,this.fmt(d.max),x0+iw,cy+vfs*.36,vfs,500,'#fff','right',0);
+      const bh=Math.max(4,rh*.12),bw=bx2-bx;this.rr(c,bx,cy-bh/2,bw,bh,bh/2);c.fillStyle='rgba(255,255,255,.22)';c.fill();
+      const a=Math.max(0,((parseFloat(d.min)||0)-lo)/rng),z=Math.min(1,((parseFloat(d.max)||0)-lo)/rng);
+      this.rr(c,bx+bw*a,cy-bh/2,Math.max(bh,bw*(z-a)),bh,bh/2);c.fillStyle='rgba(255,255,255,.92)';c.fill()});
+  }
+  alertDraw(c,bl,W,H,r,m,sc){
+    const A=r.A;this.glass(c,bl,W,H,r.x,r.y,r.w,r.h);const lf=A.fs*.5,ic=lf*1.3;
+    this.ico(c,'warn',r.x+A.pad,r.y+A.pad+lf*.05,ic,'#fff',sc);
+    this.T(c,String(m.alert).toUpperCase(),r.x+A.pad+ic+10,r.y+A.pad+lf*.88,lf,500,'rgba(255,255,255,.85)','left',lf*.1);
+    A.lines.forEach((l,i)=>this.T(c,l,r.x+A.pad,r.y+A.pad+A.hdr+A.gap+A.fs*.9+i*A.lh,A.fs,500,'#fff','left',-.3));
+  }
+  overlay(c,L,sz,sc){
+    const W=L.W,H=L.H,fs=Math.max(14,13/sc),z=L.zone,zx=z[0]*W,zy=z[1]*H,zw=z[2]*W,zh=z[3]*H;
+    c.save();c.setLineDash([10/sc,7/sc]);c.lineWidth=2/sc;
+    c.fillStyle='rgba(120,210,255,.12)';c.strokeStyle='rgba(120,210,255,.95)';c.fillRect(zx,zy,zw,zh);c.strokeRect(zx,zy,zw,zh);
+    this.T(c,'BAKANCS ZÓNA',zx+10/sc,zy+fs*1.5,fs,600,'rgba(150,225,255,1)','left',1);
+    c.strokeStyle='rgba(255,200,100,.85)';c.strokeRect(L.inset,L.inset,W-2*L.inset,H-2*L.inset);c.setLineDash([]);
+    (L.safe||[]).forEach(s=>{c.fillStyle='rgba(255,70,70,.22)';c.fillRect(0,s.y,W,s.h);this.T(c,s.l,12/sc,s.y+fs*1.6,fs,600,'#ffb3ab','left',1)});
+    c.restore();
+  }
+
+  // ---------- paint / export
+  paint(){
+    const s=this.state;if(!s.authed||!s.booted)return;const m=this.model();
+    if(s.view==='grid'){for(const sz of this.SIZES){const cv=this.cvs[sz.id];if(cv)this.drawOne(cv,sz,m,Math.min(1,640/Math.max(sz.w,sz.h)))}}
+    else{const sz=this.SIZES.find(z=>z.id===s.view),cv=this.cvs.editor;if(sz&&cv)this.drawOne(cv,sz,m,Math.min(1,1400/Math.max(sz.w,sz.h)))}
+  }
+  drawOne(cv,sz,m,scale){this._sc=scale;this.draw(cv,sz,m,{scale,overlay:this.state.overlay,img:this.getImg(m.state,sz.rk)})}
+  fname(m,sz){const d=new Date(),ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');const st=this.STATES.find(x=>x.k===m.state).slug;return `DRK_Everest_${st}_${m.sk==='custom'?'egyedi':m.sk}_${sz.id}_${ds}.png`}
+  async render(sz,ov){const m=this.model(ov);const img=await this.loadBg(m.state,sz.rk);await this.ensureFonts();const cv=document.createElement('canvas');this._sc=1;this.draw(cv,sz,m,{scale:1,overlay:false,img});const blob=await new Promise(r=>cv.toBlob(r,'image/png'));return {blob,name:this.fname(m,sz)}}
+  dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+  async one(sz){try{const r=await this.render(sz);this.dl(r.blob,r.name)}catch(e){console.error(e)}}
+  async bulk(list,zipName){
+    this.setState({busy:{done:0,total:list.length}});const files=[];
+    try{for(let i=0;i<list.length;i++){const r=await this.render(list[i].sz,list[i].ov);files.push({name:r.name,data:new Uint8Array(await r.blob.arrayBuffer())});this.setState({busy:{done:i+1,total:list.length}});await new Promise(r=>setTimeout(r,0))}
+      this.dl(this.zip(files),zipName)}catch(e){console.error(e)}
+    this.setState({busy:null});
+  }
+  dstr(){const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
+  crc32(u){if(!this._crc){const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}this._crc=t}let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=this._crc[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+  zip(files){
+    const enc=new TextEncoder(),parts=[],cd=[];let off=0;const d=new Date(),dt=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),dd=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+    for(const f of files){const nm=enc.encode(f.name),crc=this.crc32(f.data),sz=f.data.length;
+      const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);h.setUint32(14,crc,true);h.setUint32(18,sz,true);h.setUint32(22,sz,true);h.setUint16(26,nm.length,true);
+      parts.push(new Uint8Array(h.buffer),nm,f.data);
+      const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);c.setUint32(16,crc,true);c.setUint32(20,sz,true);c.setUint32(24,sz,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+      cd.push(new Uint8Array(c.buffer),nm);off+=30+nm.length+sz}
+    let cds=0;for(const p of cd)cds+=p.length;const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cds,true);e.setUint32(16,off,true);
+    return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:'application/zip'});
+  }
+
+  // ---------- UI
+  refFn(id){return this.rf[id]||(this.rf[id]=el=>{this.cvs[id]=el})}
+  BOOT={'sunny|1x1':[.444,.48,.825,.786],'sunny|4x5':[.42,.5,.824,.74],'sunny|9x16':[.267,.51,.788,.71],'sunny|16x9':[.534,.387,.894,.866],
+    'wind|4x5':[.41,.52,.82,.74],'wind|1x1':[.43,.48,.86,.77],'wind|9x16':[.19,.505,.85,.727],'wind|16x9':[.55,.39,.905,.87],
+    'rain|4x5':[.37,.44,.86,.69],'rain|1x1':[.35,.37,.876,.79],'rain|9x16':[.234,.51,.866,.75],'rain|16x9':[.52,.49,.85,.77],
+    'snow|4x5':[.275,.45,.776,.71],'snow|1x1':[.376,.48,.87,.77],'snow|9x16':[.215,.47,.84,.66],'snow|16x9':[.51,.39,.876,.83],
+    'ice|4x5':[.4,.46,.86,.71],'ice|1x1':[.425,.42,.83,.79],'ice|9x16':[.215,.59,.795,.71],'ice|16x9':[.527,.345,.876,.866],
+    'fog|4x5':[.356,.525,.89,.74],'fog|1x1':[.435,.51,.884,.786],'fog|9x16':[.195,.5,.85,.73],'fog|16x9':[.49,.34,.85,.83]};
+  autoC={};
+  autoAdj(st,sz){
+    const k=st+'|'+sz.rk,img=this.bgReady[k],bb=this.BOOT[(st==='cold'?'sunny':st)+'|'+sz.rk];
+    if(!img||!bb||this.state.bgCustom[k])return null;
+    const ck=st+'|'+sz.id;if(this.autoC[ck])return this.autoC[ck];
+    const W=sz.w,H=sz.h,iw=img.naturalWidth,ih=img.naturalHeight,L=this.layout(sz,{weeklySq:false}),zn=L.zone,s0=Math.max(W/iw,H/ih);
+    const bcx=(bb[0]+bb[2])/2*iw,bcy=(bb[1]+bb[3])/2*ih;let best=null;
+    for(let z=1;z<=1.7001;z+=.02){
+      const s=s0*z,dw=iw*s,dh=ih*s,bw=(bb[2]-bb[0])*iw*s,tx=Math.min((zn[0]+zn[2]/2)*W,W*.965-bw/2),ty=(zn[1]+zn[3]/2)*H;
+      const ox=Math.max(W-dw,Math.min(0,tx-bcx*s)),oy=Math.max(H-dh,Math.min(0,ty-bcy*s));
+      const cx=ox+bcx*s,cy=oy+bcy*s,left=ox+bb[0]*iw*s,right=ox+bb[2]*iw*s,top=oy+bb[1]*ih*s,bot=oy+bb[3]*ih*s;
+      let cost=Math.abs(cx-tx)/W+Math.abs(cy-ty)/H+.2*(z-1);
+      if(left<zn[0]*W)cost+=(zn[0]*W-left)/W*1.5;
+      if(right>W*.985)cost+=3;if(top<0||bot>H*.97)cost+=3;
+      if(!best||cost<best.c)best={c:cost,z,px:W-dw?ox/(W-dw)*100:50,py:H-dh?oy/(H-dh)*100:50};
+    }
+    return this.autoC[ck]={x:Math.round(best.px),y:Math.round(best.py),z:Math.round(best.z*100)};
+  }
+  adjOf(st,id){const man=(this.state.adj[st]||{})[id];if(man)return {x:50,y:50,z:100,...man};const sz=this.SIZES.find(z=>z.id===id);return {x:50,y:50,z:100,...(sz&&this.autoAdj(st,sz)||{})}}
+  setAdjP(st,id,p){this.setState(s=>({adj:{...s.adj,[st]:{...(s.adj[st]||{}),[id]:{...this.adjOf(st,id),...p}}}}))}
+  setAdj(st,id,k,v){this.setState(s=>({adj:{...s.adj,[st]:{...(s.adj[st]||{}),[id]:{...this.adjOf(st,id),[k]:v}}}}))}
+  btn(on,bd,bg,fg){return {bd:on?'rgba(159,211,255,.6)':'rgba(255,255,255,.1)',bg:on?'rgba(159,211,255,.12)':'transparent',fg:on?'#fff':'#a3a8af'}}
+  renderVals(){
+    const s=this.state,wx=s.wx,m=this.model(),set=(o)=>this.setState(o);
+    const ed=(fn)=>(e)=>{const v=e.target.value;this.editWx(w=>fn(w,v))};
+    const codeOpts=this.CODES.map(c=>({v:String(c[0]),t:c[1]}));
+    const tabs=[['weather','Időjárás'],['state','Állapot'],['images','Képek'],['elements','Elemek']].map(a=>{const on=s.tab===a[0];return {n:a[1],on:()=>set({tab:a[0]}),bd:on?'rgba(255,255,255,.18)':'transparent',bg:on?'rgba(255,255,255,.08)':'transparent',fg:on?'#fff':'#8b9097'}});
+    const hoursUI=wx.hours.map((h,i)=>({label:h.label,temp:h.temp,code:String(h.code),icon:this.iconUrl(this.iconFor(h.code,h.isDay)),onLabel:ed((w,v)=>{w.hours[i].label=v}),onTemp:ed((w,v)=>{w.hours[i].temp=v}),onCode:ed((w,v)=>{w.hours[i].code=+v})}));
+    const daysUI=wx.days.map((d,i)=>({label:d.label,min:d.min,max:d.max,code:String(d.code),icon:this.iconUrl(this.iconFor(d.code,1)),onLabel:ed((w,v)=>{w.days[i].label=v}),onMin:ed((w,v)=>{w.days[i].min=v}),onMax:ed((w,v)=>{w.days[i].max=v}),onCode:ed((w,v)=>{w.days[i].code=+v})}));
+    const stName=k=>this.STATES.find(x=>x.k===k).n,st=m.state,cfg=s.cfg[st];
+    const stateOpts=[{v:'auto',t:'Automatikus ('+stName(m.auto)+')'},...this.STATES.map(x=>({v:x.k,t:x.n}))];
+    const sloganRows=['A','B','C','custom'].map(k=>{const on=s.sel[st]===k;return {k:k==='custom'?'✎':k,on,bd:on?'rgba(159,211,255,.5)':'rgba(255,255,255,.08)',bg:on?'rgba(159,211,255,.08)':'#131518',dot:on?'#f2f3f4':'transparent',dotFg:on?'#0c0d0f':'#c9cdd2',text:k==='custom'?s.custom:s.slogans[k],onSel:()=>set(x=>({sel:{...x.sel,[st]:k}})),onText:e=>{const v=e.target.value;k==='custom'?set({custom:v,sel:{...s.sel,[st]:'custom'}}):set(x=>({slogans:{...x.slogans,[k]:v}}))}}});
+    const mg=s.manage;
+    const manageChips=this.STATES.map(x=>({n:x.n,...this.btn(mg===x.k),on:()=>{set({manage:x.k});this.slots(x.k)}}));
+    const ratios=[['1x1','1:1',120],['4x5','4:5',150],['9x16','9:16',210],['16x9','16:9',90]];
+    const slots=ratios.map(r=>{const k=mg+'|'+r[0];return {label:r[1],h:r[2]+'px',url:s.bgUrls[k]||'',op:s.bgUrls[k]?1:0,tag:s.bgCustom[k]?' · saját':'',onOver:e=>e.preventDefault(),onDrop:e=>{e.preventDefault();this.upBg(mg,r[0],e.dataTransfer.files[0])},onFile:e=>{this.upBg(mg,r[0],e.target.files[0]);e.target.value=''},onClear:()=>this.clearBg(mg,r[0])}});
+    const tg=(on,n,fn)=>({n,on:fn,bg:on?'#9fd3ff':'rgba(255,255,255,.18)',left:on?'16px':'2px'});
+    const toggles=[tg(s.cta.on,'CTA gomb (opcionális)',()=>set(x=>({cta:{...x.cta,on:!x.cta.on}}))),tg(s.weeklySq,'Heti kártya az 1:1 méreteken',()=>set(x=>({weeklySq:!x.weeklySq}))),tg(s.overlay,'Bakancs zóna és safe zone overlay',()=>set(x=>({overlay:!x.overlay})))];
+    const logoModes=[['auto','Auto'],['white','Fehér'],['black','Fekete'],['beige','Bézs']].map(a=>({n:a[1],...this.btn(s.logoMode===a[0]),on:()=>set({logoMode:a[0]})}));
+    const logoSlots=[['white','Fehér','#2a2d33','#fff'],['black','Fekete','#c9cdd2','#111'],['beige','Bézs','#2a2d33','#e8d8c1']].map(a=>({n:a[1],bg:a[2],fg:a[3],url:s.logoUrls[a[0]]||(()=>{const l=this.logoSrc(a[0]);return l.src||l.toDataURL()})(),onOver:e=>e.preventDefault(),onDrop:e=>{e.preventDefault();this.upLogo(a[0],e.dataTransfer.files[0])},onFile:e=>{this.upLogo(a[0],e.target.files[0]);e.target.value=''}}));
+    const tiles=this.SIZES.map(z=>({id:z.id,sub:z.sub,ref:this.refFn(z.id),onOpen:()=>set({view:z.id}),onPng:e=>{e.stopPropagation();this.one(z)}}));
+    const sizeChips=this.SIZES.map(z=>({n:z.id,...this.btn(s.view===z.id),on:()=>set({view:z.id})}));
+    const ez=this.SIZES.find(z=>z.id===s.view)||this.SIZES[0],a=this.adjOf(st,ez.id);
+    const api=s.apiStatus;
+    const busyPct=s.busy?Math.round(100*s.busy.done/s.busy.total)+'%':'0%';
+    return {
+      showLogin:s.booted&&!s.authed,showApp:s.booted&&s.authed,pw:s.pw,pwErr:s.pwErr,onPw:e=>set({pw:e.target.value,pwErr:false}),
+      onLogin:e=>{e.preventDefault();if(s.pw==='jhlykrvsz26'){try{localStorage.setItem('drk_auth','1')}catch(x){}set({authed:true,pwErr:false,pw:''});setTimeout(()=>this.initApp(),0)}else set({pwErr:true})},
+      onLogout:()=>{try{localStorage.removeItem('drk_auth')}catch(x){}set({authed:false})},
+      apiDot:api==='ok'?'#6fe3a1':api==='err'?'#ffb86b':'#8b9097',apiText:api==='ok'?'Open-Meteo · '+s.apiTime:api==='err'?'Open-Meteo nem elérhető · kézi mód':'Open-Meteo betöltés…',apiErr:api==='err',
+      corrected:s.corrected,busy:!!s.busy,busyPct,busyText:s.busy?s.busy.done+'/'+s.busy.total:'',
+      onRefresh:()=>this.fetchWx(),
+      onZip:()=>this.bulk(this.SIZES.map(z=>({sz:z})),`DRK_Everest_${this.STATES.find(x=>x.k===st).slug}_${this.dstr()}.zip`),
+      onBatch:()=>{const l=[];for(const k of ['A','B','C'])for(const z of this.SIZES)l.push({sz:z,ov:{slogan:k}});this.bulk(l,`DRK_Everest_batch_${this.STATES.find(x=>x.k===st).slug}_${this.dstr()}.zip`)},
+      tabs,tabW:s.tab==='weather',tabS:s.tab==='state',tabI:s.tab==='images',tabE:s.tab==='elements',
+      wx,hoursUI,daysUI,codeOpts,curCode:String(wx.code),textOverride:s.textOverride,labelAuto:cfg.label,
+      onCity:ed((w,v)=>{w.city=v}),onTemp:ed((w,v)=>{w.temp=v}),onMax:ed((w,v)=>{w.max=v}),onMin:ed((w,v)=>{w.min=v}),onWind:ed((w,v)=>{w.wind=v}),onFeels:ed((w,v)=>{w.feels=v}),onCode:ed((w,v)=>{w.code=+v}),
+      onTextOv:e=>set({textOverride:e.target.value,corrected:true}),
+      onToggleCorr:()=>set({corrected:!s.corrected}),corrBd:s.corrected?'rgba(255,200,100,.4)':'rgba(255,255,255,.12)',corrBg:s.corrected?'rgba(255,200,100,.12)':'transparent',corrFg:s.corrected?'#ffd58a':'#8b9097',
+      onResetApi:()=>{if(s.api)set(x=>({wx:JSON.parse(JSON.stringify(x.api)),corrected:false,textOverride:''}));else this.fetchWx()},
+      curStateIcon:this.iconUrl(m.icon),curStateName:stName(st),autoName:stName(m.auto),stateOverride:s.stateOverride,stateOpts,onStateOv:e=>set({stateOverride:e.target.value}),
+      cfgLabel:cfg.label,cfgAlert:cfg.alert,onCfgLabel:e=>{const v=e.target.value;set(x=>({cfg:{...x.cfg,[st]:{...x.cfg[st],label:v}}}))},onCfgAlert:e=>{const v=e.target.value;set(x=>({cfg:{...x.cfg,[st]:{...x.cfg[st],alert:v}}}))},
+      sloganRows,onResetSlogans:()=>set({sel:this.defSel()}),
+      manageChips,manageNote:mg==='cold'?'Az Általános hideg alapból a Napos hideg képeit használja, amíg nem töltesz fel sajátot.':'Állapotonként 4 arány. A méretek a megfelelő arányú képet használják.',slots,
+      toggles,ctaText:s.cta.text,onCtaText:e=>{const v=e.target.value;set(x=>({cta:{...x.cta,text:v}}))},logoModes,logoSlots,
+      fontLabel:s.fontMode==='custom'?'Saját font: '+s.fontName:'Saját DRK font feltöltése',onFont:e=>{this.upFont(e.target.files[0]);e.target.value=''},onFontReset:()=>set({fontMode:'inter'}),
+      showGrid:s.view==='grid',showEditor:s.view!=='grid',tiles,tempLabel:this.fmt(wx.temp),curSlogan:m.sk==='custom'?'egyedi':m.sk,
+      sizeChips,editorRef:this.refFn('editor'),onBack:()=>set({view:'grid'}),
+      ed:{id:ez.id,sub:ez.sub,ratio:ez.ratio,x:a.x,y:a.y,z:a.z,
+        onDown:e=>{const img=this.getImg(st,ez.rk);if(!img)return;this._drag={cx:e.clientX,cy:e.clientY,a:this.adjOf(st,ez.id),sz:ez,img,st};try{e.target.setPointerCapture(e.pointerId)}catch(x){}e.target.style.cursor='grabbing'},
+        onMove:e=>{const d=this._drag;if(!d)return;const r=e.target.getBoundingClientRect(),k=d.sz.w/r.width,s=Math.max(d.sz.w/d.img.naturalWidth,d.sz.h/d.img.naturalHeight)*d.a.z/100,sx=d.sz.w-d.img.naturalWidth*s,sy=d.sz.h-d.img.naturalHeight*s;
+          const cl=v=>Math.round(Math.max(0,Math.min(100,v))*10)/10,p={};if(sx<-.5)p.x=cl((sx*d.a.x/100+(e.clientX-d.cx)*k)/sx*100);if(sy<-.5)p.y=cl((sy*d.a.y/100+(e.clientY-d.cy)*k)/sy*100);this.setAdjP(d.st,d.sz.id,p)},
+        onUp:e=>{this._drag=null;e.target.style.cursor='grab'},
+        onWheel:e=>{this.setAdjP(st,ez.id,{z:Math.max(100,Math.min(300,Math.round(this.adjOf(st,ez.id).z-e.deltaY*.2)))})},onX:e=>this.setAdj(st,ez.id,'x',+e.target.value),onY:e=>this.setAdj(st,ez.id,'y',+e.target.value),onZ:e=>this.setAdj(st,ez.id,'z',+e.target.value),
+        onReset:()=>set(x=>{const o={...(x.adj[st]||{})};delete o[ez.id];return {adj:{...x.adj,[st]:o}}}),onPng:()=>this.one(ez)},
+      onOverlayToggle:()=>set(x=>({overlay:!x.overlay})),overlayBg:s.overlay?'#9fd3ff':'rgba(255,255,255,.18)',overlayLeft:s.overlay?'16px':'2px'
+    };
+  }
+}
+</script>
+</body>
+</html>
