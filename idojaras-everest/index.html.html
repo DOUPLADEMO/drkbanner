@@ -249,11 +249,12 @@ input[type=range]{accent-color:#9fd3ff;width:100%}
     <div style="width:290px;flex:none;border-left:1px solid rgba(255,255,255,.07);background:#0f1012;padding:18px 16px;display:flex;flex-direction:column;gap:16px;overflow:auto">
       <div><div style="font-size:15px;font-weight:500">{{ ed.id }}</div><div style="font-size:12px;color:#8b9097">{{ ed.sub }}</div></div>
       <div style="font-size:11.5px;letter-spacing:.08em;color:#8b9097;text-transform:uppercase">Háttér · {{ ed.ratio }}</div>
-      <div style="font-size:12px;line-height:1.45;color:#c9cdd2;background:rgba(159,211,255,.08);border:1px solid rgba(159,211,255,.2);border-radius:10px;padding:9px 11px">Húzd a képet az előnézeten a mozgatáshoz, a görgővel nagyíthatsz. Mozgatáshoz kell egy kis nagyítás.</div>
+      <div style="font-size:12px;line-height:1.45;color:#c9cdd2;background:rgba(159,211,255,.08);border:1px solid rgba(159,211,255,.2);border-radius:10px;padding:9px 11px">Húzd a képet az előnézeten a mozgatáshoz, a görgővel nagyíthatsz. Mozgatáshoz kell egy kis nagyítás. A szlogen-kártyát is odébb húzhatod, ha a bakancsra lóg.</div>
       <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#8b9097"><span style="display:flex;justify-content:space-between"><span>Pozíció X</span><span>{{ ed.x }}%</span></span><input type="range" min="0" max="100" value="{{ ed.x }}" onInput="{{ ed.onX }}"></label>
       <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#8b9097"><span style="display:flex;justify-content:space-between"><span>Pozíció Y</span><span>{{ ed.y }}%</span></span><input type="range" min="0" max="100" value="{{ ed.y }}" onInput="{{ ed.onY }}"></label>
       <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#8b9097"><span style="display:flex;justify-content:space-between"><span>Nagyítás</span><span>{{ ed.z }}%</span></span><input type="range" min="100" max="300" value="{{ ed.z }}" onInput="{{ ed.onZ }}"></label>
       <button onClick="{{ ed.onReset }}" style="cursor:pointer;font-size:12.5px;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8b9097">Alaphelyzet</button>
+      <button onClick="{{ ed.onCardReset }}" style="cursor:pointer;font-size:12.5px;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8b9097">Szlogen-kártya alaphelyzet</button>
       <button onClick="{{ onHourlyToggle }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#131518;cursor:pointer;text-align:left;font-size:12.5px"><span style="width:34px;height:20px;border-radius:99px;background:{{ hourlyBg }};position:relative;flex:none"><span style="position:absolute;top:2px;left:{{ hourlyLeft }};width:16px;height:16px;border-radius:99px;background:#fff"></span></span>Órás előrejelzés</button>
       <button onClick="{{ onWeeklyToggle }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#131518;cursor:pointer;text-align:left;font-size:12.5px"><span style="width:34px;height:20px;border-radius:99px;background:{{ weeklyBg }};position:relative;flex:none"><span style="position:absolute;top:2px;left:{{ weeklyLeft }};width:16px;height:16px;border-radius:99px;background:#fff"></span></span>Heti előrejelzés</button>
       <button onClick="{{ onOverlayToggle }}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#131518;cursor:pointer;text-align:left;font-size:12.5px"><span style="width:34px;height:20px;border-radius:99px;background:{{ overlayBg }};position:relative;flex:none"><span style="position:absolute;top:2px;left:{{ overlayLeft }};width:16px;height:16px;border-radius:99px;background:#fff"></span></span>Bakancs zóna és safe zone</button>
@@ -278,9 +279,9 @@ class Component extends DCLogic {
   STATES=[{k:'snow',n:'Havas',slug:'havas'},{k:'ice',n:'Jeges',slug:'jeges'},{k:'rain',n:'Esős',slug:'esos'},{k:'wind',n:'Szeles',slug:'szeles'},{k:'fog',n:'Ködös',slug:'kodos'},{k:'sunny',n:'Napos hideg',slug:'napos-hideg'},{k:'cold',n:'Általános hideg',slug:'altalanos-hideg'}];
   CODES=[[0,'Derült'],[1,'Túlnyomóan derült'],[2,'Részben felhős'],[3,'Borult'],[45,'Köd'],[48,'Zúzmarás köd'],[51,'Gyenge szitálás'],[53,'Szitálás'],[55,'Erős szitálás'],[56,'Ónos szitálás'],[57,'Erős ónos szitálás'],[61,'Gyenge eső'],[63,'Eső'],[65,'Erős eső'],[66,'Ónos eső'],[67,'Erős ónos eső'],[68,'Havas eső'],[71,'Gyenge havazás'],[73,'Havazás'],[75,'Erős havazás'],[77,'Hószemcsék'],[80,'Gyenge zápor'],[81,'Zápor'],[82,'Heves zápor'],[85,'Hózápor'],[86,'Erős hózápor'],[95,'Zivatar'],[96,'Zivatar jégesővel'],[99,'Erős zivatar jégesővel']];
   DAYS=['Vasárnap','Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat'];
-  PERSIST=['hourlyOn','wx','corrected','stateOverride','textOverride','cfg','slogans','sel','custom','cta','weeklySq','logoMode','overlay','fontMode','adj'];
+  PERSIST=['cardOff','hourlyOn','wx','corrected','stateOverride','textOverride','cfg','slogans','sel','custom','cta','weeklySq','logoMode','overlay','fontMode','adj'];
   bgP={};bgReady={};cvs={};rf={};logoImgs={white:null,black:null,beige:null};mem={};icCache={};tintCache={};
-  state={hourlyOn:true,booted:false,authed:false,pw:'',pwErr:false,tab:'weather',view:'grid',wx:this.defWx(),api:null,apiStatus:'idle',apiTime:'',corrected:false,stateOverride:'auto',textOverride:'',cfg:this.defCfg(),
+  state={cardOff:{},hourlyOn:true,booted:false,authed:false,pw:'',pwErr:false,tab:'weather',view:'grid',wx:this.defWx(),api:null,apiStatus:'idle',apiTime:'',corrected:false,stateOverride:'auto',textOverride:'',cfg:this.defCfg(),
     slogans:{A:'Mínuszok jönnek. Ideje felvenni az Everestet.',B:'Jönnek a mínuszok. Válaszd az Everestet.'},sel:this.defSel(),custom:'',cta:{on:false,text:'Vásárolj most'},weeklySq:false,logoMode:'auto',overlay:false,fontMode:'inter',fontName:'',adj:{},manage:'snow',bgUrls:{},bgCustom:{},logoUrls:{white:'',black:'',beige:''},busy:null};
 
   defCfg(){return {snow:{label:'Havas',alert:'Hóriasztás'},ice:{label:'Ónos eső',alert:'Fagyriasztás'},rain:{label:'Esős',alert:'Figyelmeztetés'},wind:{label:'Erős szél',alert:'Figyelmeztetés'},fog:{label:'Ködös',alert:'Figyelmeztetés'},sunny:{label:'Napos, hideg',alert:'Figyelmeztetés'},cold:{label:'Hideg',alert:'Figyelmeztetés'}}}
@@ -351,7 +352,7 @@ class Component extends DCLogic {
     const texts={...s.slogans,custom:s.custom},fz=[56,57,66,67].includes(+wx.code);
     let label=s.textOverride||cfg.label;if(!s.textOverride&&st==='ice'&&cfg.label==='Ónos eső'&&!fz)label='Fagyos idő';
     const icon={snow:'snow',ice:fz?'freezing':'frost',rain:'rain',wind:'wind',fog:'fog',sunny:'sun',cold:'cloud'}[st];
-    return {hourlyOn:s.hourlyOn,state:st,auto,wx,label,alert:cfg.alert,sk,slogan:texts[sk]||'',cta:s.cta,weeklySq:s.weeklySq,logoMode:s.logoMode,adj:s.adj[st]||{},icon};
+    return {cardOff:s.cardOff||{},hourlyOn:s.hourlyOn,state:st,auto,wx,label,alert:cfg.alert,sk,slogan:texts[sk]||'',cta:s.cta,weeklySq:s.weeklySq,logoMode:s.logoMode,adj:s.adj[st]||{},icon};
   }
   fmt(v){const n=parseFloat(v);return isNaN(n)?'–':Math.round(n)+'°'}
   iconFor(c,day){c=+c;if(c<=1)return day?'sun':'moon';if(c===2)return day?'partly':'partlyNight';if(c===3)return 'cloud';if(c===45)return 'fog';if(c===48)return 'frost';if(c<=55)return 'drizzle';if(c===56||c===57||c===66||c===67)return 'freezing';if(c<=65)return 'rain';if(c===68||c===69)return 'sleet';if(c<=77)return 'snow';if(c<=82)return 'showers';if(c<=86)return 'snowshowers';return 'thunder'}
@@ -490,6 +491,10 @@ class Component extends DCLogic {
     return R;
   }
 
+  hitCard(e,sz){const r=this._ar&&this._ar[sz.id];if(!r)return false;const b=e.target.getBoundingClientRect(),k=sz.w/b.width,x=(e.clientX-b.left)*k,y=(e.clientY-b.top)*k;return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
+  moveCard(e,sz){const d=this._cd,r=this._ar[sz.id],cur=this.state.cardOff[sz.id]||{x:0,y:0},b=e.target.getBoundingClientRect(),k=sz.w/b.width,bx=r.x-cur.x,by=r.y-cur.y;
+    const nx=Math.max(-bx,Math.min(sz.w-r.w-bx,d.o.x+(e.clientX-d.cx)*k)),ny=Math.max(-by,Math.min(sz.h-r.h-by,d.o.y+(e.clientY-d.cy)*k));
+    this.setState(s=>({cardOff:{...s.cardOff,[sz.id]:{x:Math.round(nx),y:Math.round(ny)}}}))}
   bootRect(sz,m,img){const bb=this.BOOT[(m.state==='cold'?'sunny':m.state)+'|'+sz.rk];if(!bb||!img||!img.naturalWidth||this.state.bgCustom[m.state+'|'+sz.rk])return null;const a=this.adjOf(m.state,sz.id),s=Math.max(sz.w/img.naturalWidth,sz.h/img.naturalHeight)*a.z/100,dw=img.naturalWidth*s,dh=img.naturalHeight*s,ox=(sz.w-dw)*a.x/100,oy=(sz.h-dh)*a.y/100;return {x:ox+bb[0]*dw,y:oy+bb[1]*dh,w:(bb[2]-bb[0])*dw,h:(bb[3]-bb[1])*dh}}
   scaleL(L,k){const o={...L,temp:{...L.temp,s:L.temp.s*k,maxW:L.kind==='story'?L.temp.maxW:L.temp.maxW*k},hourlyH:L.hourlyH*k,alertFs:L.alertFs*k,ctaH:L.ctaH*(1+(k-1)*.5)};
     if(L.kind==='col'){o.col=L.col*k;o.weeklyH=L.weeklyH*k}else if(L.kind==='wide'){o.hourlyX=L.M+(L.hourlyX-L.M)*k;o.hourlyW=L.hourlyW*k;o.alertW=L.alertW*k}return o}
@@ -509,6 +514,7 @@ class Component extends DCLogic {
     const bl=this.blur(bg,20*sc),c=cv.getContext('2d');
     c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cw,ch);c.drawImage(bg,0,0);c.setTransform(sc,0,0,sc,0,0);
     const R=this.place(c,L,m);
+    {const co=m.cardOff[sz.id];if(co&&R.alert){const a=R.alert;R.alert={...a,x:Math.max(0,Math.min(W-a.w,a.x+co.x)),y:Math.max(0,Math.min(H-a.h,a.y+co.y))}}(this._ar||(this._ar={}))[sz.id]=R.alert}
     // logo + EVEREST
     const s0=this.logoSrc('white'),asp=(s0.naturalWidth||s0.width)/(s0.naturalHeight||s0.height),lh=L.logo.h,lw=lh*asp,efs=lh*.42,els=efs*.34;
     const lx=L.logo.al==='right'?L.logo.x-lw:L.logo.al==='center'?L.logo.x-lw/2:L.logo.x,ly=L.logo.y;
@@ -691,10 +697,11 @@ class Component extends DCLogic {
       showGrid:s.view==='grid',showEditor:s.view!=='grid',tiles,tempLabel:this.fmt(wx.temp),curSlogan:m.sk==='custom'?'egyedi':m.sk,
       sizeChips,editorRef:this.refFn('editor'),onBack:()=>set({view:'grid'}),
       ed:{id:ez.id,sub:ez.sub,ratio:ez.ratio,x:a.x,y:a.y,z:a.z,
-        onDown:e=>{const img=this.getImg(st,ez.rk);if(!img)return;this._drag={cx:e.clientX,cy:e.clientY,a:this.adjOf(st,ez.id),sz:ez,img,st};try{e.target.setPointerCapture(e.pointerId)}catch(x){}e.target.style.cursor='grabbing'},
-        onMove:e=>{const d=this._drag;if(!d)return;const r=e.target.getBoundingClientRect(),k=d.sz.w/r.width,s=Math.max(d.sz.w/d.img.naturalWidth,d.sz.h/d.img.naturalHeight)*d.a.z/100,sx=d.sz.w-d.img.naturalWidth*s,sy=d.sz.h-d.img.naturalHeight*s;
+        onCardReset:()=>set(x=>{const o={...x.cardOff};delete o[ez.id];return {cardOff:o}}),
+        onDown:e=>{if(this.hitCard(e,ez)){this._cd={cx:e.clientX,cy:e.clientY,o:{...(s.cardOff[ez.id]||{x:0,y:0})}};try{e.target.setPointerCapture(e.pointerId)}catch(x){}e.target.style.cursor='move';return}const img=this.getImg(st,ez.rk);if(!img)return;this._drag={cx:e.clientX,cy:e.clientY,a:this.adjOf(st,ez.id),sz:ez,img,st};try{e.target.setPointerCapture(e.pointerId)}catch(x){}e.target.style.cursor='grabbing'},
+        onMove:e=>{if(this._cd){this.moveCard(e,ez);return}const d=this._drag;if(!d){e.target.style.cursor=this.hitCard(e,ez)?'move':'grab';return}const r=e.target.getBoundingClientRect(),k=d.sz.w/r.width,s=Math.max(d.sz.w/d.img.naturalWidth,d.sz.h/d.img.naturalHeight)*d.a.z/100,sx=d.sz.w-d.img.naturalWidth*s,sy=d.sz.h-d.img.naturalHeight*s;
           const cl=v=>Math.round(Math.max(0,Math.min(100,v))*10)/10,p={};if(sx<-.5)p.x=cl((sx*d.a.x/100+(e.clientX-d.cx)*k)/sx*100);if(sy<-.5)p.y=cl((sy*d.a.y/100+(e.clientY-d.cy)*k)/sy*100);this.setAdjP(d.st,d.sz.id,p)},
-        onUp:e=>{this._drag=null;e.target.style.cursor='grab'},
+        onUp:e=>{this._drag=null;this._cd=null;e.target.style.cursor='grab'},
         onWheel:e=>{this.setAdjP(st,ez.id,{z:Math.max(100,Math.min(300,Math.round(this.adjOf(st,ez.id).z-e.deltaY*.2)))})},onX:e=>this.setAdj(st,ez.id,'x',+e.target.value),onY:e=>this.setAdj(st,ez.id,'y',+e.target.value),onZ:e=>this.setAdj(st,ez.id,'z',+e.target.value),
         onReset:()=>set(x=>{const o={...(x.adj[st]||{})};delete o[ez.id];return {adj:{...x.adj,[st]:o}}}),onPng:()=>this.one(ez)},
       onHourlyToggle:()=>set(x=>({hourlyOn:!x.hourlyOn})),hourlyBg:s.hourlyOn?'#9fd3ff':'rgba(255,255,255,.18)',hourlyLeft:s.hourlyOn?'16px':'2px',
