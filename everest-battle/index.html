@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Montserrat:wght@300;400;600;900&display=swap" rel="stylesheet">
 <style>html,body{margin:0;height:100%;background:#141518}*{box-sizing:border-box}a{color:#ff6a2b}a:hover{color:#ff9a6b}input[type=range]{accent-color:#ff6a2b}</style>
 </helmet>
 <div style="position:fixed;inset:0;display:flex;flex-direction:column;font-family:'Barlow',sans-serif;color:#e9e9ec;background:#141518;font-size:13px">
@@ -45,18 +45,18 @@
                 <sc-if value="{{ l.isCross }}" hint-placeholder-val="{{ false }}"><div style="font:700 44px/56px 'Barlow Condensed',sans-serif;color:#fff;text-align:center;white-space:nowrap">× ×</div></sc-if>
                 <sc-if value="{{ l.isDiv }}" hint-placeholder-val="{{ false }}"><div style="width:3px;height:56px;background:#fff"></div></sc-if>
                 <sc-if value="{{ l.isHead }}" hint-placeholder-val="{{ false }}">
-                  <div style="color:#fff;text-align:center;white-space:nowrap;text-shadow:0 2px 16px rgba(0,0,0,.35);font:800 112px/100px 'Barlow Condensed',sans-serif">
-                    <div style="height:100px;line-height:100px">EGY BAKANCS,</div>
-                    <div style="height:100px;line-height:100px">KÉT STÍLUS</div>
+                  <div style="color:#fff;text-align:center;white-space:nowrap;text-shadow:0 2px 16px rgba(0,0,0,.35);font:900 74px/84px 'Athletico Pro','Montserrat',sans-serif;color:#f8f8f8">
+                    <div style="height:84px;line-height:84px">EGY BAKANCS,</div>
+                    <div style="height:84px;line-height:84px">KÉT STÍLUS</div>
                   </div>
                 </sc-if>
-                <sc-if value="{{ l.isUnder }}" hint-placeholder-val="{{ false }}"><svg width="420" height="30" viewBox="0 0 420 30" style="display:block"><path d="M3 20 C60 9 150 4 260 5 C330 6 385 9 417 5 C395 13 350 17 280 19 C190 22 90 24 40 27 C20 29 8 27 3 20 Z" fill="#fff"></path></svg></sc-if>
+                <sc-if value="{{ l.isUnder }}" hint-placeholder-val="{{ false }}"><svg width="420" height="30" viewBox="0 0 420 30" style="display:block"><path d="M3 20 C60 9 150 4 260 5 C330 6 385 9 417 5 C395 13 350 17 280 19 C190 22 90 24 40 27 C20 29 8 27 3 20 Z" fill="#f8f8f8"></path></svg></sc-if>
                 <sc-if value="{{ l.isTagA }}" hint-placeholder-val="{{ false }}">
-                  <div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:8px;right:8px;top:0;bottom:0;background:#fff;transform:skewX(-12deg)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:italic 800 50px 'Barlow Condensed',sans-serif;color:#0b0b0c;line-height:72px">SPORTOS</div></div>
+                  <div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:12px;right:12px;top:0;bottom:0;background:#f8f8f8;transform:skewX(-12deg)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:skewX(-12deg);font:600 38px 'Montserrat',sans-serif;color:#004e37;line-height:88px">SPORTOS</div></div>
                 </sc-if>
-                <sc-if value="{{ l.isVs }}" hint-placeholder-val="{{ false }}"><div style="font:italic 600 54px/72px 'Playfair Display',serif;color:#fff;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.35)">VS.</div></sc-if>
+                <sc-if value="{{ l.isVs }}" hint-placeholder-val="{{ false }}"><div style="font:300 44px/72px 'Athletico Pro','Montserrat',sans-serif;color:#f8f8f8;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.35)">VS.</div></sc-if>
                 <sc-if value="{{ l.isTagB }}" hint-placeholder-val="{{ false }}">
-                  <div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:8px;right:8px;top:0;bottom:0;background:#fff;transform:skewX(-12deg)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:italic 800 50px 'Barlow Condensed',sans-serif;color:#0b0b0c;line-height:72px">ELEGÁNS</div></div>
+                  <div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:12px;right:12px;top:0;bottom:0;background:#f8f8f8;transform:skewX(-12deg)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:skewX(-12deg);font:600 38px 'Montserrat',sans-serif;color:#004e37;line-height:88px">ELEGÁNS</div></div>
                 </sc-if>
               </div>
             </sc-for>
@@ -133,6 +133,8 @@
         <div style="display:flex;align-items:center;gap:8px"><span style="flex:none">DRK színe</span><div style="display:flex;gap:6px;flex:1"><sc-for list="{{ toneTabs }}" as="c" hint-placeholder-count="2"><button data-k="{{ c.k }}" onClick="{{ onTone }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
         <label style="display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 10px;border:1px dashed #3a3b43;border-radius:6px;cursor:pointer"><span>DRK logó cseréje</span><span style="color:#8b8d96">{{ drkState }}</span><input type="file" accept="image/*" data-k="drk" onChange="{{ onUpload }}" style="display:none"></label>
         <label style="display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 10px;border:1px dashed #3a3b43;border-radius:6px;cursor:pointer"><span>EVEREST logó cseréje</span><span style="color:#8b8d96">{{ evState }}</span><input type="file" accept="image/*" data-k="everest" onChange="{{ onUpload }}" style="display:none"></label>
+        <div style="font:700 11px 'Barlow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8b8d96;margin-top:6px">Főcím betűtípus</div>
+        <label style="display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 10px;border:1px dashed #3a3b43;border-radius:6px;cursor:pointer"><span>Athletico Pro Black…</span><span style="color:#8b8d96">{{ fontState }}</span><input type="file" accept=".otf,.ttf,.woff,.woff2" data-k="font" onChange="{{ onUpload }}" style="display:none"></label>
       </div>
     </div>
   </div>
@@ -151,11 +153,11 @@ class Component extends DCLogic {
     drk: { iw: 90, ih: 50, g: 'logos', label: 'DRK logó' },
     div: { iw: 3, ih: 44, g: 'logos', label: 'Függőleges elválasztó' },
     everest: { iw: 260, ih: 25, g: 'logos', label: 'EVEREST logó' },
-    head: { iw: 700, ih: 200, g: 'title', label: 'Főcím' },
+    head: { iw: 700, ih: 180, g: 'title', label: 'Főcím' },
     under: { iw: 420, ih: 30, g: 'title', label: 'Aláhúzás' },
-    tagA: { iw: 300, ih: 72, g: 'title', label: 'SPORTOS címke' },
+    tagA: { iw: 380, ih: 88, g: 'title', label: 'SPORTOS címke' },
     vs: { iw: 110, ih: 72, g: 'title', label: 'VS.' },
-    tagB: { iw: 300, ih: 72, g: 'title', label: 'ELEGÁNS címke' }
+    tagB: { iw: 380, ih: 88, g: 'title', label: 'ELEGÁNS címke' }
   };
   BRUSH = 'M3 20 C60 9 150 4 260 5 C330 6 385 9 417 5 C395 13 350 17 280 19 C190 22 90 24 40 27 C20 29 8 27 3 20 Z';
   CFG = {
@@ -177,8 +179,8 @@ class Component extends DCLogic {
     { id: 'el916', side: 'E', label: 'ELEGÁNS 9:16', src: 'uploads/openart-image_1795092897206_658f7e3d_1795092898585_1059cb78.jpg', w: 1536, h: 2752 },
     { id: 'el169', side: 'E', label: 'ELEGÁNS 16:9', src: 'uploads/openart-image_1795092656763_2cdf9792_1795092657585_785e4627.jpg', w: 2752, h: 1536 }
   ];
-  LS = 'everest-sb-layouts-v4';
-  state = { size: 'feed1x1', layouts: {}, sel: [], af: 'a', guides: { v: false, h: false }, vs: 0.5, logos: { drk: null, everest: null }, extra: [], snap: true, safe: true, gm: false, busy: '', drkTone: 'white', drkDef: true };
+  LS = 'everest-sb-layouts-v6';
+  state = { size: 'feed1x1', layouts: {}, sel: [], af: 'a', guides: { v: false, h: false }, vs: 0.5, logos: { drk: null, everest: null }, extra: [], snap: true, safe: true, gm: false, busy: '', fontOk: false, drkTone: 'white', drkDef: true };
   tones = {};
   custom = {};
   areaRef = React.createRef();
@@ -191,7 +193,7 @@ class Component extends DCLogic {
     const C = this.CFG[key], S = this.SIZES[key], cx = S.W / 2, L = [];
     const add = (id, x, y, s, vis = true) => L.push({ id, cx: x, cy: y, s, vis });
     [['drk', -20, true], ['div', 0, false], ['everest', 29.5, true]].forEach(([id, o, v]) => add(id, cx, C.lc + o * C.ls, C.ls, v));
-    [['head', 0, 0], ['under', 0, 121], ['tagA', -205, 188], ['vs', 0, 188], ['tagB', 205, 188]].forEach(([id, xo, yo]) => add(id, cx + xo * C.ts, C.to + yo * C.ts, C.ts));
+    [['head', 0, 0], ['under', 0, 104], ['tagA', -250, 180], ['vs', 0, 180], ['tagB', 250, 180]].forEach(([id, xo, yo]) => add(id, cx + xo * C.ts, C.to + yo * C.ts, C.ts));
     return { layers: L, g: [{ cy: C.g1[0], h: C.g1[1], op: 45 }, { cy: C.g2[0], h: C.g2[1], op: 35 }], fa: { img: C.fa[0], z: 1, px: C.fa[1], py: C.fa[2] }, fb: { img: C.fb[0], z: 1, px: C.fb[1], py: C.fb[2] }, divider: false };
   }
   lay(k) { return this.state.layouts[k] || this.def(k); }
@@ -226,8 +228,10 @@ class Component extends DCLogic {
     } catch (e) {}
     this.initLogos();
     this.ro = new ResizeObserver(() => this.fit());
-    if (this.areaRef.current) this.ro.observe(this.areaRef.current);
-    this.fit();
+    if (this.areaRef.current) { this.obs = this.areaRef.current; this.ro.observe(this.areaRef.current); }
+    this.fit(); setTimeout(this.fit, 100); setTimeout(this.fit, 500);
+    window.addEventListener('resize', this.fit);
+    this.fitTimer = setInterval(this.fit, 400);
     window.addEventListener('keydown', this.onKey);
   }
   async initLogos() {
@@ -247,11 +251,17 @@ class Component extends DCLogic {
     const t = e.currentTarget.dataset.k; this.setState({ drkTone: t });
     if (this.state.drkDef && this.tones[t]) this.setState({ logos: { ...this.state.logos, drk: this.tones[t] } });
   };
-  componentWillUnmount() { this.ro && this.ro.disconnect(); window.removeEventListener('keydown', this.onKey); }
+  componentWillUnmount() { clearInterval(this.fitTimer); this.ro && this.ro.disconnect(); window.removeEventListener('keydown', this.onKey); window.removeEventListener('resize', this.fit); }
+  componentDidUpdate() {
+    const a = this.areaRef.current;
+    if (a && a !== this.obs) { this.obs = a; this.ro && this.ro.observe(a); }
+    this.fit();
+  }
   fit = () => {
     const a = this.areaRef.current; if (!a) return;
     const S = this.SIZES[this.state.size];
-    const vs = Math.max(.1, Math.min((a.clientWidth - 56) / S.W, (a.clientHeight - 56) / S.H));
+    if (!a.clientWidth || !a.clientHeight) return;
+    const vs = Math.max(.05, Math.min((a.clientWidth - 56) / S.W, (a.clientHeight - 56) / S.H));
     if (Math.abs(vs - this.state.vs) > .001) this.setState({ vs });
   };
   onKey = (e) => {
@@ -350,6 +360,7 @@ class Component extends DCLogic {
     const rd = new FileReader();
     rd.onload = () => {
       const src = rd.result;
+      if (k === 'font') { const ff = new FontFace('Athletico Pro', 'url(' + src + ')', { weight: '100 900' }); ff.load().then(() => { document.fonts.add(ff); this.setState({ fontOk: true }); }).catch(() => {}); return; }
       if (k === 'img') {
         const im = new Image();
         im.onload = () => {
@@ -372,22 +383,21 @@ class Component extends DCLogic {
   }
   async fonts() {
     const t = 'EGY BAKANCS, KÉT STÍLUS SPORTOS ELEGÁNS VS. DRK EVEREST ×';
-    await Promise.all(['800 112px "Barlow Condensed"', 'italic 800 50px "Barlow Condensed"', '700 44px "Barlow Condensed"', 'italic 600 54px "Playfair Display"'].map(f => document.fonts.load(f, t)));
+    await Promise.all(['900 74px "Athletico Pro"', '900 74px Montserrat', '600 38px Montserrat', '300 44px "Athletico Pro"', '300 44px Montserrat', '800 46px "Barlow Condensed"'].map(f => document.fonts.load(f, t).catch(() => 0)));
   }
   async drawL(x, id) {
     const d = this.DEFS[id], lg = this.state.logos;
-    x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    x.fillStyle = '#f8f8f8'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     if (d.g === 'logos') { x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 8; x.shadowOffsetY = 2; }
     const txt = (t, font, y) => { x.font = font; const m = x.measureText('M'); x.fillText(t, 0, y + (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2); };
     if (id === 'head') {
       x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 16; x.shadowOffsetY = 2;
-      txt('EGY BAKANCS,', '800 112px "Barlow Condensed"', -50); txt('KÉT STÍLUS', '800 112px "Barlow Condensed"', 50);
-    } else if (id === 'under') { x.translate(-210, -15); x.fill(new Path2D(this.BRUSH)); }
+      txt('EGY BAKANCS,', '900 74px "Athletico Pro", Montserrat', -42); txt('KÉT STÍLUS', '900 74px "Athletico Pro", Montserrat', 42);
+    } else if (id === 'under') { x.translate(-210, -15); x.fillStyle = '#f8f8f8'; x.fill(new Path2D(this.BRUSH)); }
     else if (id === 'tagA' || id === 'tagB') {
-      const sk = 36 * Math.tan(12 * Math.PI / 180), hw = 142;
-      x.beginPath(); x.moveTo(-hw + sk, -36); x.lineTo(hw + sk, -36); x.lineTo(hw - sk, 36); x.lineTo(-hw - sk, 36); x.closePath(); x.fill();
-      x.fillStyle = '#0b0b0c'; txt(id === 'tagA' ? 'SPORTOS' : 'ELEGÁNS', 'italic 800 50px "Barlow Condensed"', 0);
-    } else if (id === 'vs') { x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 12; x.shadowOffsetY = 2; txt('VS.', 'italic 600 54px "Playfair Display"', 0); }
+      x.shadowColor = 'transparent'; x.transform(1, 0, -Math.tan(12 * Math.PI / 180), 1, 0, 0); x.fillStyle = '#f8f8f8'; x.fillRect(-178, -44, 356, 88);
+      x.fillStyle = '#004e37'; txt(id === 'tagA' ? 'SPORTOS' : 'ELEGÁNS', '600 38px Montserrat', 0);
+    } else if (id === 'vs') { x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 12; x.shadowOffsetY = 2; txt('VS.', '300 44px "Athletico Pro", Montserrat', 0); }
     else if (id === 'cross') txt('× ×', '700 44px "Barlow Condensed"', 0);
     else if (id === 'div') x.fillRect(-1.5, -28, 3, 56);
     else {
@@ -495,7 +505,7 @@ class Component extends DCLogic {
       hasLayerSel: !!f0, sclVal: f0 ? Math.round(f0.s * 100) : 100,
       hasGradSel: gsel, gOp: gg.op, gH: Math.round(gg.h), gY: Math.round(gg.cy), gMaxY: S.H,
       snapOn: st.snap, safeChk: st.safe, gmOn: st.gm,
-      drkState: lg.drk ? 'betöltve ✓' : 'helyőrző', evState: lg.everest ? 'betöltve ✓' : 'helyőrző', toneTabs: [['white', 'Fehér'], ['beige', 'Bézs']].map(([k, label]) => ({ k, label, style: { flex: 1, height: 30, border: '1px solid ' + (st.drkTone === k ? '#ff6a2b' : '#3a3b43'), background: st.drkTone === k ? '#2b1c14' : '#25262c', color: '#e9e9ec', borderRadius: 6, cursor: 'pointer', font: "600 12px 'Barlow',sans-serif" } })), onTone: this.onTone,
+      fontState: st.fontOk ? 'betöltve ✓' : 'Montserrat Black', drkState: lg.drk ? 'betöltve ✓' : 'helyőrző', evState: lg.everest ? 'betöltve ✓' : 'helyőrző', toneTabs: [['white', 'Fehér'], ['beige', 'Bézs']].map(([k, label]) => ({ k, label, style: { flex: 1, height: 30, border: '1px solid ' + (st.drkTone === k ? '#ff6a2b' : '#3a3b43'), background: st.drkTone === k ? '#2b1c14' : '#25262c', color: '#e9e9ec', borderRadius: 6, cursor: 'pointer', font: "600 12px 'Barlow',sans-serif" } })), onTone: this.onTone,
       onSize: this.onSize, onExport: this.onExport, onDown: this.onDown, onDbl: this.onDbl, onSide: this.onSide, onPick: this.onPick, onUpload: this.onUpload,
       onSl: this.onSl, onAct: this.onAct, onGroup: this.onGroup, onRow: this.onRow, onVis: this.onVis, onTog: this.onTog
     };
