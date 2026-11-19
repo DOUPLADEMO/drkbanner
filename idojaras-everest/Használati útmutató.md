@@ -3,17 +3,21 @@
 ## 1. Belépés
 - Jelszó: `jhlykrvsz26`. A böngésző megjegyzi, a jobb felső **Kilépés** gombbal léphetsz ki.
 
-## 2. Napi munkamenet (5 lépés)
+## 2. Napi munkamenet (6 lépés)
 1. **Időjárás fül → Időkép szerint javítás.** Betöltéskor a program lekéri Budapest adatait az Open-Meteóból (a **Frissítés** gombbal bármikor újra). Nyisd meg az Időképet (a fül tetején lévő link), és írd át a mezőket, ha eltér: aktuális fok, max/min, szél, állapotkód, a 6 órás sor és a heti sor (óra, fok, ikon). Szerkesztés után megjelenik az **„Időkép szerint korrigálva”** jelölő. A **Visszaállítás API-ra** gomb eldobja a kézi javításokat.
 2. **Állapot fül → ellenőrzés.** A program a kód, a hőmérséklet és a szél alapján magától választ állapotot (Havas → Jeges → Esős → Szeles → Ködös → Napos hideg → Általános hideg). Ha mást szeretnél, az **Állapot felülírása** legördülőben kiválaszthatod. Itt szerkeszthető az állapot felirata (pl. „Erős szél”) és a figyelmeztetés-kártya címkéje (Figyelmeztetés / Fagyriasztás / Hóriasztás).
-3. **Szlogen kiválasztása.** Ugyanezen a fülön az A / B / C körökre kattintva választhatsz, vagy a ✎ sorba írhatsz egyedi szöveget. Az A/B/C szövegek is átírhatók. Minden állapotnak megvan az alapértelmezett párosítása (a **Alapértelmezett párosítás visszaállítása** gombbal vissza lehet állítani).
-4. **Képek igazítása.** A rácsban egy méretre kattintva megnyílik a nagy szerkesztő nézet:
+3. **Szlogen kiválasztása.** Ugyanezen a fülön az A / B körökre kattintva választhatsz, vagy a ✎ sorba írhatsz egyedi szöveget. Az A/B szövegek is átírhatók (A: „Mínuszok jönnek. Ideje felvenni az Everestet.”, B: „Jönnek a mínuszok. Válaszd az Everestet.”). Minden állapotnak megvan az alapértelmezett párosítása (a **Alapértelmezett párosítás visszaállítása** gombbal vissza lehet állítani).
+4. **Háttér stílus: Klasszikus vagy Városi.** A felső sávban, a **Frissítés** gomb mellett a **Háttér** választóval (**Klasszikus | Városi**) váltasz. Ugyanez a rács tetején és a **Képek** fül tetején is megvan. A **Városi** a tipikus budapesti utcás, téri képeket használja (a rendszer ezt kapcsolja be elsőre). A **Klasszikus** a korábbi háttérsorozat.
+   - Városi képek állapotonként: Havas = havas tér (bézs bakancs), Esős = esti esős tér, Jeges = jeges utca, Napos hideg = napos tér, Ködös = ködös utca, Szeles és Általános hideg = szürke, leveles tér.
+   - A havas és az esős városi képből csak 4:5 arányú van. A többi méretre ezt vágja a program, és a bakancsot igazítja. Ha rálóg valamire, a szerkesztő nézetben húzással igazíthatod.
+   - A saját feltöltött háttér mindkét stílusnál érvényes marad.
+5. **Képek igazítása.** A rácsban egy méretre kattintva megnyílik a nagy szerkesztő nézet:
    - húzd a képet az előnézeten a mozgatáshoz, a görgővel nagyíthatsz (a csúszkák is működnek);
    - mozgatáshoz kell egy kis nagyítás (100%-on nincs hová húzni);
    - az **Alaphelyzet** gomb visszaállítja az automatikus igazítást;
    - a **Bakancs zóna és safe zone** kapcsolóval megjelenik a kék bakancs-zóna, a sárga biztonsági margó és a 9:16-os piros sávok (Stories UI). Az exportban az overlay nem látszik.
    - a pozíció állapotonként és méretenként külön tárolódik.
-5. **Export.**
+6. **Export.**
    - **PNG letöltés** egy méretre (rács vagy szerkesztő nézet).
    - **Összes letöltése (ZIP)**: a 6 méret az aktuális szlogennel.
    - **Batch export · 3×6**: mind a 3 szlogen × 6 méret (18 PNG) egy ZIP-ben.
