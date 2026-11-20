@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;900&amp;display=swap"/>
+<style>body{margin:0;background:#1d1a18}a{color:#e7c9a9}a:hover{color:#fff}input,textarea,button{font-family:inherit}</style>
+</helmet>
+<div style="display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);min-height:100vh;background:#1d1a18;color:#eadfd5;font-family:'Montserrat','Helvetica Neue',Arial,sans-serif">
+  <div style="box-sizing:border-box;padding:24px 22px 32px;background:#262120;border-right:1px solid #3a322c;display:flex;flex-direction:column;gap:22px;overflow:auto;max-height:100vh">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a89a8d">DRK · Banner designer</div>
+      <div style="font-size:20px;font-weight:600">Szöveg + logó a háttérre</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d">Méret</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ formats }}" as="f" hint-placeholder-count="10">
+          <button onClick="{{ f.pick }}" style="cursor:pointer;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};padding:7px 10px;border-radius:6px;font-size:12px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.2">
+            <span style="font-weight:600">{{ f.size }}</span><span style="font-size:10px;opacity:.7">{{ f.ratio }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d">Főcím (H1)</div>
+      <textarea rows="2" value="{{ headline }}" onInput="{{ onHeadline }}" style="resize:vertical;box-sizing:border-box;width:100%;padding:10px 12px;background:#1d1a18;border:1px solid #4a3f37;border-radius:6px;color:#f4ece4;font-size:14px;line-height:1.4"></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d">Alcím (H2)</div>
+      <textarea rows="2" value="{{ sub }}" onInput="{{ onSub }}" style="resize:vertical;box-sizing:border-box;width:100%;padding:10px 12px;background:#1d1a18;border:1px solid #4a3f37;border-radius:6px;color:#f4ece4;font-size:14px;line-height:1.4"></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d">CTA</div>
+      <input type="text" value="{{ cta }}" onInput="{{ onCta }}" style="box-sizing:border-box;width:100%;padding:10px 12px;background:#1d1a18;border:1px solid #4a3f37;border-radius:6px;color:#f4ece4;font-size:14px"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d">Szín</div>
+        <div style="display:flex;gap:8px">
+          <sc-for list="{{ colors }}" as="c" hint-placeholder-count="2">
+            <button onClick="{{ c.pick }}" title="{{ c.name }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;background:{{ c.hex }};border:2px solid {{ c.bd }};padding:0;outline:2px solid {{ c.ring }};outline-offset:2px"></button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d">CTA stílus</div>
+        <div style="display:flex;gap:6px">
+          <sc-for list="{{ ctaStyles }}" as="s" hint-placeholder-count="2">
+            <button onClick="{{ s.pick }}" style="cursor:pointer;border:1px solid {{ s.bd }};background:{{ s.bg }};color:{{ s.fg }};padding:7px 10px;border-radius:6px;font-size:12px">{{ s.name }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer"><input type="checkbox" checked="{{ upper }}" onChange="{{ onUpper }}"/>Főcím csupa nagybetű</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer"><input type="checkbox" checked="{{ showLogo }}" onChange="{{ onLogo }}"/>DRK logó</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer"><input type="checkbox" checked="{{ showCta }}" onChange="{{ onShowCta }}"/>CTA gomb</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer"><input type="checkbox" checked="{{ guides }}" onChange="{{ onGuides }}"/>Szöveghely-keret (nem exportálódik)</label>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89a8d"><span>Szövegméret</span><span>{{ scaleLabel }}</span></div>
+      <input type="range" min="50" max="100" step="1" value="{{ scale }}" onInput="{{ onScale }}" style="width:100%;accent-color:#e0d1b0"/>
+    </div>
+    <button onClick="{{ onReset }}" style="cursor:pointer;border:1px solid #4a3f37;background:transparent;color:#c9bbad;padding:9px 12px;border-radius:6px;font-size:12px;text-align:left" style-hover="background:#332c28">Elemek visszaállítása az automatikus helyükre ({{ curSize }})</button>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+      <button onClick="{{ exportOne }}" style="cursor:pointer;border:0;background:#e0d1b0;color:#004e37;padding:13px 16px;border-radius:8px;font-size:14px;font-weight:600" style-hover="background:#efe3c6">PNG letöltése · {{ curSize }}</button>
+      <button onClick="{{ exportAll }}" style="cursor:pointer;border:1px solid #6b5d52;background:transparent;color:#eadfd5;padding:12px 16px;border-radius:8px;font-size:14px" style-hover="background:#332c28">{{ allLabel }}</button>
+      <div style="font-size:11px;line-height:1.5;color:#8d7f72">Fájlnév: DRK_Banner_[szél]x[mag].png. A „mind a 10" letöltésnél a böngésző többszörös letöltés engedélyét kérheti.</div>
+    </div>
+  </div>
+  <div style="box-sizing:border-box;padding:28px;display:flex;flex-direction:column;gap:14px;min-width:0;align-items:center;justify-content:center;height:100vh">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;width:100%;font-size:12px;color:#a89a8d"><span>{{ curSize }} · {{ curRatio }} · húzd az elemeket (logó, főcím, alcím, CTA)</span><span>Montserrat: főcím Black · alcím Light · CTA SemiBold</span></div>
+    <div style="flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center">
+      <canvas ref="{{ setCv }}" onPointerDown="{{ pDown }}" onPointerMove="{{ pMove }}" onPointerUp="{{ pUp }}" onPointerCancel="{{ pUp }}" width="1200" height="1200" style="touch-action:none;max-width:100%;max-height:100%;display:block;box-shadow:0 12px 40px rgba(0,0,0,.5);background:#e5d9d1"></canvas>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const FORMATS = [
+  { W: 1080, H: 1080, r: '1:1', z: { x: .08, y: .06, w: .84, h: .26, a: 'c', v: 't' }, um: .085 },
+  { W: 1200, H: 1200, r: '1:1', z: { x: .08, y: .06, w: .84, h: .26, a: 'c', v: 't' }, um: .085 },
+  { W: 1080, H: 1350, r: '4:5', z: { x: .08, y: .05, w: .84, h: .28, a: 'c', v: 't' }, um: .07 },
+  { W: 1440, H: 1800, r: '4:5', z: { x: .08, y: .05, w: .84, h: .28, a: 'c', v: 't' }, um: .07 },
+  { W: 960, H: 1200, r: '4:5', z: { x: .08, y: .05, w: .84, h: .28, a: 'c', v: 't' }, um: .07 },
+  { W: 1080, H: 1920, r: '9:16', z: { x: .08, y: .215, w: .84, h: .185, a: 'c', v: 't' }, um: .042 },
+  { W: 1440, H: 2560, r: '9:16', z: { x: .08, y: .215, w: .84, h: .185, a: 'c', v: 't' }, um: .042 },
+  { W: 1920, H: 1080, r: '16:9', z: { x: .62, y: .10, w: .31, h: .66, a: 'l', v: 'm' }, um: .13 },
+  { W: 1200, H: 628, r: '1,91:1', z: { x: .62, y: .10, w: .32, h: .66, a: 'l', v: 'm' }, um: .13 },
+  { W: 700, H: 450, r: '14:9', z: { x: .66, y: .10, w: .29, h: .66, a: 'l', v: 'm' }, um: .14 }
+];
+const COLORS = [{ name: 'Emerald Depth', hex: '#004e37' }, { name: 'Fekete', hex: '#141210' }];
+const LOGO_AR = 2465 / 1359;
+const HF = (u) => `900 ${u}px Montserrat, Arial, sans-serif`;
+const SF = (u) => `300 ${u}px Montserrat, Arial, sans-serif`;
+const CF = (u) => `600 ${u}px Montserrat, Arial, sans-serif`;
+
+class Component extends DCLogic {
+  state = (() => {
+    const d = { fi: 7, headline: 'Jó helyekre\nvisz.', sub: 'Válogass ajándékot a DRK kollekcióból.', cta: 'Irány a bolt', ci: 0, solid: true, upper: true, showLogo: true, showCta: true, guides: true, scale: 100, off: {}, busy: false };
+    try { const s = JSON.parse(localStorage.getItem('drk-banner-v1') || 'null'); if (s) Object.assign(d, s, { busy: false }); } catch (e) {}
+    return d;
+  })();
+  imgs = {};
+  setCv = (el) => { this.cv = el; };
+  loadImg(src) {
+    if (!this.imgs[src]) this.imgs[src] = new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    return this.imgs[src];
+  }
+  wrap(ctx, text, maxW) {
+    const out = [];
+    for (const para of text.split('\n')) {
+      let line = '';
+      for (const w of para.split(/\s+/).filter(Boolean)) {
+        const t = line ? line + ' ' + w : w;
+        if (!line || ctx.measureText(t).width <= maxW) line = t; else { out.push(line); line = w; }
+      }
+      out.push(line);
+    }
+    return out.filter((l) => l !== '');
+  }
+  async paint(cv, f, preview, tok) {
+    const S = this.state, W = f.W, H = f.H, hits = [];
+    const O = (k) => { const o = ((S.off[f.W + 'x' + f.H] || {})[k]) || [0, 0]; return [o[0] * W, o[1] * H]; };
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const ctx = cv.getContext('2d');
+    const head = S.upper ? S.headline.toUpperCase() : S.headline;
+    const cta = S.cta;
+    await Promise.all([
+      document.fonts.load(HF(100), head + 'ŐŰőű'), document.fonts.load(SF(20), S.sub + 'ŐŰőű'), document.fonts.load(CF(20), cta + 'ŐŰőű')
+    ]);
+    const [bg, logo] = await Promise.all([this.loadImg(`export/DRK_Ajandektorony_${W}x${H}.png`), this.loadImg('assets/drk-logo.png')]);
+    if (preview && tok !== this.tok) return;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(bg, 0, 0, W, H);
+    const Z = f.z, zx = Z.x * W, zy = Z.y * H, zw = Z.w * W, zh = Z.h * H, center = Z.a === 'c';
+    const color = COLORS[S.ci].hex;
+    const build = (u) => {
+      ctx.font = HF(u);
+      const hl = this.wrap(ctx, head, zw);
+      const hok = hl.every((l) => ctx.measureText(l).width <= zw + 0.5);
+      const subU = Math.max(u * 0.3, 12);
+      ctx.font = SF(subU);
+      const sl = S.sub.trim() ? this.wrap(ctx, S.sub, center ? zw * 0.92 : zw) : [];
+      const ctaU = Math.max(u * 0.2, 12);
+      ctx.font = CF(ctaU); ctx.letterSpacing = (ctaU * 0.06) + 'px';
+      const cw = ctx.measureText(cta).width + u * 0.8; ctx.letterSpacing = '0px';
+      const ch = Math.max(u * 0.52, ctaU * 2.4);
+      const lh = u * 0.62, hlh = u * 1.02, slh = subU * 1.4;
+      let h = 0; const parts = {};
+      if (S.showLogo) { parts.logo = h; h += lh + u * 0.42; }
+      parts.head = h; h += hl.length * hlh + u * 0.04;
+      if (sl.length) { h += u * 0.22; parts.sub = h; h += sl.length * slh; }
+      if (S.showCta && cta.trim()) { h += u * 0.42; parts.cta = h; h += ch; }
+      return { u, hl, sl, hok, h, parts, lh, hlh, slh, subU, ctaU, cw, ch };
+    };
+    const umax = H * f.um * (S.scale / 100);
+    let lo = 8, hi = umax, best = build(lo);
+    const ok = (b) => b.hok && b.h <= zh;
+    if (ok(build(hi))) best = build(hi);
+    else { for (let i = 0; i < 28; i++) { const m = (lo + hi) / 2; if (ok(build(m))) lo = m; else hi = m; } best = build(lo); }
+    const B = best, u = B.u;
+    const y0 = Z.v === 'm' ? zy + (zh - B.h) / 2 : zy;
+    const ax = center ? zx + zw / 2 : zx;
+    ctx.textBaseline = 'alphabetic';
+    if (S.showLogo) {
+      const lw = Math.round(B.lh * LOGO_AR), lhh = Math.round(B.lh);
+      const t = document.createElement('canvas'); t.width = lw; t.height = lhh;
+      const tx = t.getContext('2d'); tx.imageSmoothingQuality = 'high'; tx.drawImage(logo, 0, 0, lw, lhh);
+      tx.globalCompositeOperation = 'source-in'; tx.fillStyle = color; tx.fillRect(0, 0, lw, lhh);
+      const [ox, oy] = O('logo'), lx = (center ? ax - lw / 2 : ax) + ox, ly = y0 + B.parts.logo + oy;
+      ctx.drawImage(t, lx, ly); hits.push({ k: 'logo', x: lx, y: ly, w: lw, h: lhh });
+    }
+    ctx.fillStyle = color; ctx.textAlign = center ? 'center' : 'left';
+    ctx.font = HF(u);
+    const [hx, hy] = O('head'); let hw = 0;
+    B.hl.forEach((l, i) => { hw = Math.max(hw, ctx.measureText(l).width); ctx.fillText(l, ax + hx, y0 + B.parts.head + hy + i * B.hlh + u * 0.8); });
+    hits.push({ k: 'head', x: (center ? ax - hw / 2 : ax) + hx, y: y0 + B.parts.head + hy, w: hw, h: B.hl.length * B.hlh });
+    if (B.sl.length) {
+      ctx.font = SF(B.subU);
+      const [sx, sy] = O('sub'); let sw = 0;
+      B.sl.forEach((l, i) => { sw = Math.max(sw, ctx.measureText(l).width); ctx.fillText(l, ax + sx, y0 + B.parts.sub + sy + i * B.slh + B.subU * 1.02); });
+      hits.push({ k: 'sub', x: (center ? ax - sw / 2 : ax) + sx, y: y0 + B.parts.sub + sy, w: sw, h: B.sl.length * B.slh });
+    }
+    if (S.showCta && cta.trim()) {
+      const [qx, qy] = O('cta'), cx = (center ? ax - B.cw / 2 : ax) + qx, cy = y0 + B.parts.cta + qy;
+      hits.push({ k: 'cta', x: cx, y: cy, w: B.cw, h: B.ch });
+      ctx.lineWidth = Math.max(2, u * 0.03);
+      if (S.solid) { ctx.fillStyle = color; ctx.fillRect(cx, cy, B.cw, B.ch); }
+      else { ctx.strokeStyle = color; ctx.strokeRect(cx + ctx.lineWidth / 2, cy + ctx.lineWidth / 2, B.cw - ctx.lineWidth, B.ch - ctx.lineWidth); }
+      ctx.fillStyle = S.solid ? '#f8f8f8' : color; ctx.font = CF(B.ctaU); ctx.letterSpacing = (B.ctaU * 0.06) + 'px';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(cta, cx + B.cw / 2 + B.ctaU * 0.03, cy + B.ch / 2 + B.ctaU * 0.06);
+      ctx.letterSpacing = '0px';
+    }
+    if (preview) {
+      this.hits = hits; const s = hits.find((h) => h.k === (this.drag ? this.drag.k : this.sel));
+      if (s) { ctx.save(); ctx.lineWidth = Math.max(2, W / 500); ctx.strokeStyle = '#3fd0c9'; const p = W / 200; ctx.strokeRect(s.x - p, s.y - p, s.w + 2 * p, s.h + 2 * p); ctx.restore(); }
+    }
+    if (preview && S.guides) {
+      ctx.save(); ctx.lineWidth = Math.max(2, W / 600); ctx.setLineDash([W / 100, W / 160]);
+      ctx.strokeStyle = '#3fd0c9'; ctx.strokeRect(zx, zy, zw, zh);
+      if (f.r === '9:16') { ctx.strokeStyle = '#ff7a59'; ctx.setLineDash([W / 200, W / 200]); [.2, .8].forEach((p) => { ctx.beginPath(); ctx.moveTo(0, H * p); ctx.lineTo(W, H * p); ctx.stroke(); }); }
+      ctx.restore();
+    }
+  }
+  redraw() {
+    if (!this.cv) return;
+    const tok = (this.tok = (this.tok || 0) + 1);
+    this.paint(this.cv, FORMATS[this.state.fi], true, tok).catch((e) => console.warn('paint', e));
+    try { const { busy, ...s } = this.state; localStorage.setItem('drk-banner-v1', JSON.stringify(s)); } catch (e) {}
+  }
+  pt(e) { const r = this.cv.getBoundingClientRect(); return [(e.clientX - r.left) * this.cv.width / r.width, (e.clientY - r.top) * this.cv.height / r.height]; }
+  hit(p) { const hs = this.hits || [], m = this.cv.width / 100; for (let i = hs.length - 1; i >= 0; i--) { const h = hs[i]; if (p[0] >= h.x - m && p[0] <= h.x + h.w + m && p[1] >= h.y - m && p[1] <= h.y + h.h + m) return h.k; } return null; }
+  pDown = (e) => { const p = this.pt(e), k = this.hit(p); if (!k) return; const f = FORMATS[this.state.fi], key = f.W + 'x' + f.H, o = ((this.state.off[key] || {})[k]) || [0, 0]; this.drag = { k, key, p, o }; this.cv.setPointerCapture(e.pointerId); this.cv.style.cursor = 'grabbing'; this.redraw(); };
+  pMove = (e) => {
+    const p = this.pt(e);
+    if (this.drag) { const d = this.drag, W = this.cv.width, H = this.cv.height; const nv = [d.o[0] + (p[0] - d.p[0]) / W, d.o[1] + (p[1] - d.p[1]) / H]; this.setState((s) => ({ off: { ...s.off, [d.key]: { ...(s.off[d.key] || {}), [d.k]: nv } } })); return; }
+    const k = this.hit(p); this.cv.style.cursor = k ? 'grab' : 'default'; if (k !== this.sel) { this.sel = k; this.redraw(); }
+  };
+  pUp = (e) => { if (this.drag) { this.drag = null; this.cv.style.cursor = 'grab'; this.redraw(); } };
+  componentDidMount() { this.redraw(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.redraw()); }
+  componentDidUpdate() { this.redraw(); }
+  download(cv, f) {
+    return new Promise((res) => cv.toBlob((b) => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `DRK_Banner_${f.W}x${f.H}.png`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); res();
+    }, 'image/png'));
+  }
+  renderVals() {
+    const S = this.state, cur = FORMATS[S.fi], set = (o) => this.setState(o);
+    return {
+      setCv: this.setCv,
+      formats: FORMATS.map((f, i) => ({ size: f.W + '×' + f.H, ratio: f.r, pick: () => set({ fi: i }), bd: i === S.fi ? '#e0d1b0' : '#4a3f37', bg: i === S.fi ? '#e0d1b0' : 'transparent', fg: i === S.fi ? '#004e37' : '#eadfd5' })),
+      colors: COLORS.map((c, i) => ({ name: c.name, hex: c.hex, pick: () => set({ ci: i }), bd: '#e0d1b0', ring: i === S.ci ? '#e0d1b0' : 'transparent' })),
+      ctaStyles: [{ name: 'Tömör', v: true }, { name: 'Körvonal', v: false }].map((s) => ({ name: s.name, pick: () => set({ solid: s.v }), bd: s.v === S.solid ? '#e0d1b0' : '#4a3f37', bg: s.v === S.solid ? '#e0d1b0' : 'transparent', fg: s.v === S.solid ? '#004e37' : '#eadfd5' })),
+      headline: S.headline, sub: S.sub, cta: S.cta, upper: S.upper, showLogo: S.showLogo, showCta: S.showCta, guides: S.guides, scale: S.scale,
+      scaleLabel: S.scale + '%',
+      onHeadline: (e) => set({ headline: e.target.value }), onSub: (e) => set({ sub: e.target.value }), onCta: (e) => set({ cta: e.target.value }),
+      onUpper: (e) => set({ upper: e.target.checked }), onLogo: (e) => set({ showLogo: e.target.checked }), onShowCta: (e) => set({ showCta: e.target.checked }), onGuides: (e) => set({ guides: e.target.checked }),
+      onScale: (e) => set({ scale: +e.target.value }),
+      curSize: cur.W + '×' + cur.H, curRatio: cur.r,
+      allLabel: S.busy ? 'Exportálás…' : 'Mind a 10 méret letöltése',
+      onReset: () => set((s) => { const f = FORMATS[s.fi], o = { ...s.off }; delete o[f.W + 'x' + f.H]; return { off: o }; }),
+      pDown: this.pDown, pMove: this.pMove, pUp: this.pUp,
+      exportOne: async () => { const c = document.createElement('canvas'); await this.paint(c, cur, false); await this.download(c, cur); },
+      exportAll: async () => {
+        if (S.busy) return; set({ busy: true });
+        for (const f of FORMATS) { const c = document.createElement('canvas'); await this.paint(c, f, false); await this.download(c, f); await new Promise((r) => setTimeout(r, 350)); }
+        set({ busy: false });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
