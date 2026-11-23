@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>body{margin:0;background:#1d1a18}a{color:#e7c9a9}a:hover{color:#fff}</style></helmet>
+<div style="min-height:100vh;box-sizing:border-box;padding:32px 36px 48px;background:#1d1a18;color:#eadfd5;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:28px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#a89a8d">DRK · Ajándéktorony · szöveg nélküli bannerhátterek</div>
+      <div style="font-size:26px;font-weight:500">Kontaktlap — 10 méret, 5 képarány</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button onClick="{{ toggleFrames }}" style="cursor:pointer;border:1px solid #6b5d52;background:#2b2622;color:#eadfd5;padding:10px 16px;border-radius:999px;font-size:14px;display:flex;align-items:center;gap:10px" style-hover="background:#3a322c">
+        <span style="width:10px;height:10px;border-radius:50%;background:{{ dotColor }};display:block"></span>{{ toggleLabel }}
+      </button>
+    </div>
+  </div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#a89a8d;margin-bottom:28px;align-items:center">
+    <span style="display:flex;gap:8px;align-items:center"><span style="width:22px;height:0;border-top:2px dashed #3fd0c9;display:block"></span>szabadon hagyott szöveghely</span>
+    <span style="display:flex;gap:8px;align-items:center"><span style="width:22px;height:0;border-top:2px dotted #ff7a59;display:block"></span>9:16 story safe zone (felső/alsó 20%)</span>
+    <span>A segédkeret csak itt látszik, az exportált PNG-kben nincs.</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:34px">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:12px;border-bottom:1px solid #3a322c;padding-bottom:8px">
+          <span style="font-size:18px;font-weight:500">{{ g.ratio }}</span>
+          <span style="font-size:13px;color:#a89a8d">{{ g.note }}</span>
+        </div>
+        <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="position:relative;height:{{ it.h }}px;aspect-ratio:{{ it.ar }};background:#2b2622;box-shadow:0 8px 24px rgba(0,0,0,.45)">
+                <img src="{{ it.src }}" alt="{{ it.name }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"/>
+                <sc-for list="{{ it.rects }}" as="r" hint-placeholder-count="1">
+                  <div style="position:absolute;left:{{ r.l }}%;top:{{ r.t }}%;width:{{ r.w }}%;height:{{ r.hh }}%;box-sizing:border-box;border:{{ r.border }};opacity:{{ framesOpacity }};pointer-events:none;background:{{ r.bg }}"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#c9bbad;font-variant-numeric:tabular-nums">
+                <span>{{ it.size }}</span>
+                <span style="color:#8d7f72">{{ it.name }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { frames: true };
+  renderVals() {
+    const T = { border: '2px dashed #3fd0c9', bg: 'rgba(63,208,201,.10)' };
+    const S = { border: '0', bg: 'rgba(255,122,89,.0)' };
+    const sf = (t) => ({ l: 0, t, w: 100, hh: 0, border: '0', bg: 'transparent', line: true });
+    const zone = (l, t, w, h) => ({ l, t, w, hh: h, ...T });
+    const line = (t) => ({ l: 0, t, w: 100, hh: 0, border: '1.5px dotted #ff7a59', bg: 'transparent' });
+    const mk = (w, h, rects, H) => ({ size: w + ' × ' + h, name: 'DRK_Ajandektorony_' + w + 'x' + h + '.png', src: 'export/DRK_Ajandektorony_' + w + 'x' + h + '.png', ar: w + ' / ' + h, h: H, rects });
+    const sq = [zone(0, 0, 100, 33)];
+    const p45 = [zone(0, 0, 100, 35)];
+    const st = [zone(0, 20, 100, 20), line(20), line(80)];
+    const w169 = [zone(60, 0, 40, 100)];
+    const w149 = [zone(65, 0, 35, 100)];
+    const groups = [
+      { ratio: '1:1', note: 'torony alul-középen ≈60% · felül 33% tiszta', items: [mk(1080, 1080, sq, 330), mk(1200, 1200, sq, 330)] },
+      { ratio: '4:5', note: 'torony alul-középen ≈55% · felső 35% tiszta', items: [mk(1080, 1350, p45, 380), mk(1440, 1800, p45, 380), mk(960, 1200, p45, 380)] },
+      { ratio: '9:16', note: 'torony középen, lefelé tolva ≈45% · felül/alul 20% safe zone', items: [mk(1080, 1920, st, 440), mk(1440, 2560, st, 440)] },
+      { ratio: '16:9', note: 'torony bal-középen ≈78% · jobb 40% tiszta', items: [mk(1920, 1080, w169, 340)] },
+      { ratio: '1,91:1', note: 'torony bal-középen ≈77% · jobb 40% tiszta', items: [mk(1200, 628, w169, 300)] },
+      { ratio: '14:9', note: 'torony ≈80% · jobb 35% tiszta', items: [mk(700, 450, w149, 300)] }
+    ];
+    return {
+      groups,
+      framesOpacity: this.state.frames ? 1 : 0,
+      toggleFrames: () => this.setState(s => ({ frames: !s.frames })),
+      toggleLabel: this.state.frames ? 'Segédkeret: be' : 'Segédkeret: ki',
+      dotColor: this.state.frames ? '#3fd0c9' : '#6b5d52'
+    };
+  }
+}
+</script>
+</body>
+</html>
