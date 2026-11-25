@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&amp;family=Montserrat:wght@300;400;600;900&amp;display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#141518}*{box-sizing:border-box}a{color:#ff6a2b}a:hover{color:#ff9a6b}input[type=range]{accent-color:#ff6a2b}</style>
+</helmet>
+<div style="position:fixed;inset:0;display:flex;flex-direction:column;font-family:'Barlow',sans-serif;color:#e9e9ec;background:#141518;font-size:13px">
+  <div style="display:flex;align-items:center;gap:18px;padding:0 16px;height:58px;border-bottom:1px solid #2a2b31;background:#1b1c21;flex:none">
+    <div style="font:800 19px 'Barlow Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Everest · Style Battle <span style="color:#8b8d96;font-weight:600">Letisztult vs. Vagány</span></div>
+    <div style="display:flex;gap:6px;flex:1;min-width:0;overflow:auto">
+      <sc-for list="{{ sizeTabs }}" as="t" hint-placeholder-count="5">
+        <button data-k="{{ t.k }}" onClick="{{ onSize }}" style="{{ t.style }}"><b style="font-weight:600;font-size:13px">{{ t.label }}</b><span style="font-size:11px;opacity:.7">{{ t.sub }}</span></button>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:8px;flex:none">
+      <button data-k="png" onClick="{{ onExport }}" style="height:34px;padding:0 12px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;font:600 13px 'Barlow',sans-serif;cursor:pointer">PNG</button>
+      <button data-k="jpg" onClick="{{ onExport }}" style="height:34px;padding:0 12px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;font:600 13px 'Barlow',sans-serif;cursor:pointer">JPG 90%</button>
+      <button data-k="all" onClick="{{ onExport }}" style="height:34px;padding:0 14px;border:0;background:#ff6a2b;color:#140a05;border-radius:6px;font:700 13px 'Barlow',sans-serif;cursor:pointer">{{ allLabel }}</button>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;min-height:0">
+    <div ref="{{ areaRef }}" style="flex:1;position:relative;overflow:hidden;background:#0d0e10;min-width:0">
+      <div style="{{ wrapStyle }}">
+        <div ref="{{ stageRef }}" onPointerDown="{{ onDown }}" onDoubleClick="{{ onDbl }}" style="{{ stageStyle }}">
+          <div style="{{ clipStyle }}">
+            <sc-for list="{{ frames }}" as="f" hint-placeholder-count="0">
+              <div style="{{ f.frame }}"><div style="{{ f.img }}"></div></div>
+            </sc-for>
+            <sc-for list="{{ gradViews }}" as="g" hint-placeholder-count="2"><div style="{{ g.style }}"></div></sc-for>
+            <sc-if value="{{ divider }}" hint-placeholder-val="{{ false }}"><div style="{{ dividerStyle }}"></div></sc-if>
+            <sc-for list="{{ layerViews }}" as="l" hint-placeholder-count="0">
+              <div data-lid="{{ l.id }}" style="{{ l.style }}">
+                <sc-if value="{{ l.drkImg }}" hint-placeholder-val="{{ false }}"><div style="{{ l.imgStyle }}"></div></sc-if>
+                <sc-if value="{{ l.drkTxt }}" hint-placeholder-val="{{ false }}"><div style="font:800 46px/56px 'Barlow Condensed',sans-serif;color:#fff;text-align:center;letter-spacing:.04em">DRK</div></sc-if>
+                <sc-if value="{{ l.evImg }}" hint-placeholder-val="{{ false }}"><div style="{{ l.imgStyle }}"></div></sc-if>
+                <sc-if value="{{ l.evTxt }}" hint-placeholder-val="{{ false }}"><div style="font:800 40px/56px 'Barlow Condensed',sans-serif;color:#fff;text-align:center;letter-spacing:.06em">EVEREST</div></sc-if>
+                <sc-if value="{{ l.isCross }}" hint-placeholder-val="{{ false }}"><div style="font:700 44px/56px 'Barlow Condensed',sans-serif;color:#fff;text-align:center;white-space:nowrap">× ×</div></sc-if>
+                <sc-if value="{{ l.isDiv }}" hint-placeholder-val="{{ false }}"><div style="width:3px;height:56px;background:#fff"></div></sc-if>
+                <sc-if value="{{ l.isHead }}" hint-placeholder-val="{{ false }}">
+                  <div style="color:#fff;text-align:center;white-space:nowrap;text-shadow:0 2px 16px rgba(0,0,0,.35);font:900 74px/84px 'Athletico Pro','Montserrat',sans-serif;color:#f8f8f8">
+                    <div style="height:84px;line-height:84px">EGY BAKANCS,</div>
+                    <div style="height:84px;line-height:84px">KÉT STÍLUS</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ l.isUnder }}" hint-placeholder-val="{{ false }}"><svg width="420" height="30" viewBox="0 0 420 30" style="display:block"><path d="M3 20 C60 9 150 4 260 5 C330 6 385 9 417 5 C395 13 350 17 280 19 C190 22 90 24 40 27 C20 29 8 27 3 20 Z" fill="#f8f8f8"></path></svg></sc-if>
+                <sc-if value="{{ l.isTagA }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:12px;right:12px;top:0;bottom:0;background:#f8f8f8;transform:skewX(-12deg)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:skewX(-12deg);font:600 38px 'Montserrat',sans-serif;color:#004e37;line-height:88px">LETISZTULT</div></div>
+                </sc-if>
+                <sc-if value="{{ l.isVs }}" hint-placeholder-val="{{ false }}"><div style="font:300 44px/72px 'Athletico Pro','Montserrat',sans-serif;color:#f8f8f8;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.35)">VS.</div></sc-if>
+                <sc-if value="{{ l.isTagB }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:relative;width:100%;height:100%"><div style="position:absolute;left:12px;right:12px;top:0;bottom:0;background:#f8f8f8;transform:skewX(-12deg)"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:skewX(-12deg);font:600 38px 'Montserrat',sans-serif;color:#004e37;line-height:88px">VAGÁNY</div></div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="{{ overlayStyle }}">
+            <sc-if value="{{ safeOn }}" hint-placeholder-val="{{ false }}"><div style="{{ safeTop }}"></div><div style="{{ safeBot }}"></div></sc-if>
+            <sc-if value="{{ frameHi }}" hint-placeholder-val="{{ false }}"><div style="{{ frameHiStyle }}"></div></sc-if>
+            <sc-for list="{{ outlines }}" as="o" hint-placeholder-count="0"><div style="{{ o.style }}"></div></sc-for>
+            <sc-if value="{{ hasBox }}" hint-placeholder-val="{{ false }}"><div style="{{ boxStyle }}"></div><div data-handle="1" style="{{ handleStyle }}"></div></sc-if>
+            <sc-if value="{{ guideV }}" hint-placeholder-val="{{ false }}"><div style="{{ guideVStyle }}"></div></sc-if>
+            <sc-if value="{{ guideH }}" hint-placeholder-val="{{ false }}"><div style="{{ guideHStyle }}"></div></sc-if>
+          </div>
+        </div>
+      </div>
+      <div style="position:absolute;left:14px;bottom:10px;font-size:11px;color:#6d6f78;pointer-events:none">Húzd a képet a pozicionáláshoz · réteg: húzás, sarok = méretezés, dupla katt = csoport · Alt = snap ki · nyilak = finom mozgatás</div>
+    </div>
+    <div style="width:330px;flex:none;overflow:auto;background:#1b1c21;border-left:1px solid #2a2b31;padding:14px 16px 28px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 11px 'Barlow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8b8d96">Képfelek</div>
+        <div style="display:flex;gap:6px">
+          <sc-for list="{{ sideTabs }}" as="s" hint-placeholder-count="2"><button data-k="{{ s.k }}" onClick="{{ onSide }}" style="{{ s.style }}">{{ s.label }}</button></sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
+          <sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="0">
+            <button data-k="{{ t.id }}" onClick="{{ onPick }}" title="{{ t.label }}" style="{{ t.style }}"><div style="{{ t.imgStyle }}"></div><span style="{{ t.tagStyle }}">{{ t.label }}</span></button>
+          </sc-for>
+        </div>
+        <label style="display:flex;align-items:center;justify-content:center;height:32px;border:1px dashed #3a3b43;border-radius:6px;color:#b5b7bf;cursor:pointer;font-weight:500">Kép feltöltése…<input type="file" accept="image/*" data-k="img" onChange="{{ onUpload }}" style="display:none"></label>
+        <div style="display:flex;flex-direction:column;gap:8px;opacity:{{ frameOp }}">
+          <div style="display:grid;grid-template-columns:70px 1fr 38px;align-items:center;gap:8px"><span>Zoom</span><input type="range" min="100" max="300" step="1" value="{{ zoomVal }}" data-k="zoom" onChange="{{ onSl }}"><span style="text-align:right;color:#8b8d96">{{ zoomVal }}%</span></div>
+          <div style="display:grid;grid-template-columns:70px 1fr 38px;align-items:center;gap:8px"><span>Vízszintes</span><input type="range" min="-100" max="100" step="1" value="{{ pxVal }}" disabled="{{ noX }}" data-k="px" onChange="{{ onSl }}" style="{{ xOp }}"><span style="text-align:right;color:#8b8d96">{{ pxVal }}</span></div>
+          <div style="display:grid;grid-template-columns:70px 1fr 38px;align-items:center;gap:8px"><span>Függőleges</span><input type="range" min="-100" max="100" step="1" value="{{ pyVal }}" disabled="{{ noY }}" data-k="py" onChange="{{ onSl }}" style="{{ yOp }}"><span style="text-align:right;color:#8b8d96">{{ pyVal }}</span></div>
+          <button data-k="rf" onClick="{{ onAct }}" style="height:30px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;cursor:pointer;font:500 12px 'Barlow',sans-serif">Kép alaphelyzet (auto zoom a modellre)</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 11px 'Barlow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8b8d96">Rétegek</div>
+        <div style="display:flex;gap:6px">
+          <button data-k="logos" onClick="{{ onGroup }}" style="flex:1;height:30px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;cursor:pointer;font:500 12px 'Barlow',sans-serif">Logósor csoport</button>
+          <button data-k="title" onClick="{{ onGroup }}" style="flex:1;height:30px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;cursor:pointer;font:500 12px 'Barlow',sans-serif">Főcím csoport</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <sc-for list="{{ layerRows }}" as="r" hint-placeholder-count="11">
+            <div data-k="{{ r.id }}" onClick="{{ onRow }}" style="{{ r.style }}"><button data-k="{{ r.id }}" onClick="{{ onVis }}" style="{{ r.eye }}">{{ r.eyeTxt }}</button><span style="flex:1">{{ r.label }}</span></div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ hasLayerSel }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:10px;background:#212228;border-radius:8px">
+            <div style="display:grid;grid-template-columns:70px 1fr 42px;align-items:center;gap:8px"><span>Méret</span><input type="range" min="10" max="400" step="1" value="{{ sclVal }}" data-k="scale" onChange="{{ onSl }}"><span style="text-align:right;color:#8b8d96">{{ sclVal }}%</span></div>
+            <div style="display:flex;gap:6px">
+              <button data-k="cx" onClick="{{ onAct }}" style="flex:1;height:30px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;cursor:pointer;font:500 12px 'Barlow',sans-serif">Vízszintesen középre</button>
+              <button data-k="cy" onClick="{{ onAct }}" style="flex:1;height:30px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;cursor:pointer;font:500 12px 'Barlow',sans-serif">Függőlegesen középre</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ hasGradSel }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:10px;background:#212228;border-radius:8px">
+            <div style="display:grid;grid-template-columns:70px 1fr 42px;align-items:center;gap:8px"><span>Erősség</span><input type="range" min="0" max="45" step="1" value="{{ gOp }}" data-k="gop" onChange="{{ onSl }}"><span style="text-align:right;color:#8b8d96">{{ gOp }}%</span></div>
+            <div style="display:grid;grid-template-columns:70px 1fr 42px;align-items:center;gap:8px"><span>Magasság</span><input type="range" min="60" max="1200" step="2" value="{{ gH }}" data-k="gh" onChange="{{ onSl }}"><span style="text-align:right;color:#8b8d96">{{ gH }}</span></div>
+            <div style="display:grid;grid-template-columns:70px 1fr 42px;align-items:center;gap:8px"><span>Pozíció Y</span><input type="range" min="0" max="{{ gMaxY }}" step="2" value="{{ gY }}" data-k="gcy" onChange="{{ onSl }}"><span style="text-align:right;color:#8b8d96">{{ gY }}</span></div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 11px 'Barlow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8b8d96">Beállítások</div>
+        <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" checked="{{ divider }}" data-k="divider" onChange="{{ onTog }}"> 2 px fehér elválasztó vonal a képfelek közt</label>
+        <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" checked="{{ snapOn }}" data-k="snap" onChange="{{ onTog }}"> Snap a középvonalra</label>
+        <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" checked="{{ safeChk }}" data-k="safe" onChange="{{ onTog }}"> Story biztonsági zóna (250 / 340 px)</label>
+        <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" checked="{{ gmOn }}" data-k="gm" onChange="{{ onTog }}"> Kattintásra az egész csoport mozogjon</label>
+        <button data-k="rl" onClick="{{ onAct }}" style="height:30px;border:1px solid #3a3b43;background:#25262c;color:#e9e9ec;border-radius:6px;cursor:pointer;font:500 12px 'Barlow',sans-serif">Ennek a méretnek az elrendezése alaphelyzet</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 11px 'Barlow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8b8d96">Logók</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="flex:none">DRK színe</span><div style="display:flex;gap:6px;flex:1"><sc-for list="{{ toneTabs }}" as="c" hint-placeholder-count="2"><button data-k="{{ c.k }}" onClick="{{ onTone }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
+        <label style="display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 10px;border:1px dashed #3a3b43;border-radius:6px;cursor:pointer"><span>DRK logó cseréje</span><span style="color:#8b8d96">{{ drkState }}</span><input type="file" accept="image/*" data-k="drk" onChange="{{ onUpload }}" style="display:none"></label>
+        <label style="display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 10px;border:1px dashed #3a3b43;border-radius:6px;cursor:pointer"><span>EVEREST logó cseréje</span><span style="color:#8b8d96">{{ evState }}</span><input type="file" accept="image/*" data-k="everest" onChange="{{ onUpload }}" style="display:none"></label>
+        <div style="font:700 11px 'Barlow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8b8d96;margin-top:6px">Főcím betűtípus</div>
+        <label style="display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 10px;border:1px dashed #3a3b43;border-radius:6px;cursor:pointer"><span>Athletico Pro Black…</span><span style="color:#8b8d96">{{ fontState }}</span><input type="file" accept=".otf,.ttf,.woff,.woff2" data-k="font" onChange="{{ onUpload }}" style="display:none"></label>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  SIZES = {
+    feed1x1: { label: '1080×1080', sub: 'Feed', W: 1080, H: 1080, split: 'lr' },
+    feed4x5: { label: '1080×1350', sub: 'Feed 4:5', W: 1080, H: 1350, split: 'lr' },
+    story: { label: '1080×1920', sub: 'Story / Reels', W: 1080, H: 1920, split: 'lr' },
+    link: { label: '1200×628', sub: 'Link / fekvő', W: 1200, H: 628, split: 'lr' },
+    yt: { label: '1920×1080', sub: '16:9', W: 1920, H: 1080, split: 'lr' }
+  };
+  DEFS = {
+    drk: { iw: 90, ih: 50, g: 'logos', label: 'DRK logó' },
+    div: { iw: 3, ih: 44, g: 'logos', label: 'Függőleges elválasztó' },
+    everest: { iw: 260, ih: 25, g: 'logos', label: 'EVEREST logó' },
+    head: { iw: 700, ih: 180, g: 'title', label: 'Főcím' },
+    under: { iw: 420, ih: 30, g: 'title', label: 'Aláhúzás' },
+    tagA: { iw: 380, ih: 88, g: 'title', label: 'LETISZTULT címke' },
+    vs: { iw: 110, ih: 72, g: 'title', label: 'VS.' },
+    tagB: { iw: 380, ih: 88, g: 'title', label: 'VAGÁNY címke' }
+  };
+  BRUSH = 'M3 20 C60 9 150 4 260 5 C330 6 385 9 417 5 C395 13 350 17 280 19 C190 22 90 24 40 27 C20 29 8 27 3 20 Z';
+  CFG = {
+    feed1x1: { lc: 112, ls: 1.65, to: 655, ts: 1, g1: [700, 520], g2: [110, 280], fa: ['let11', 0, 0], fb: ['vag11', 0, 0] },
+    feed4x5: { lc: 128, ls: 1.8, to: 840, ts: 1.1, g1: [900, 620], g2: [128, 320], fa: ['let11', 0, 0], fb: ['vag11', 0, 0] },
+    story: { lc: 335, ls: 1.7, to: 1120, ts: 1.05, g1: [1200, 640], g2: [335, 400], fa: ['let11', 0, 0], fb: ['vag11', 0, 0] },
+    link: { lc: 92, ls: 1.45, to: 372, ts: .78, g1: [430, 380], g2: [92, 220], fa: ['let11', 0, 0], fb: ['vag11', 0, 0] },
+    yt: { lc: 170, ls: 2.3, to: 600, ts: 1.25, g1: [660, 600], g2: [165, 380], fa: ['let11', 0, 0], fb: ['vag11', 0, 0] }
+  };
+  LIB0 = [
+    { id: 'let11', side: 'L', label: 'LETISZTULT', src: 'uploads/EXPAND_LETISZTULT_barna.jpg', w: 2576, h: 2576, subj: [.41, .42, .58, .895], head: [.465, .42, .535, .515], boots: [.475, .83, .535, .895] },
+    { id: 'vag11', side: 'V', label: 'VAGÁNY', src: 'uploads/EXPAND_MERESZ_platina.jpg', w: 2576, h: 2576, subj: [.405, .47, .61, .905], head: [.475, .47, .54, .56], boots: [.40, .835, .615, .905] }
+  ];
+  LS = 'everest-sb-let-vag-layouts-v5';
+  state = { size: 'feed1x1', layouts: {}, sel: [], af: 'a', guides: { v: false, h: false }, vs: 0.5, logos: { drk: null, everest: null }, extra: [], snap: true, safe: true, gm: false, busy: '', fontOk: false, drkTone: 'white', drkDef: true };
+  tones = {};
+  custom = {};
+  areaRef = React.createRef();
+  stageRef = React.createRef();
+  cache = {};
+  _d = {};
+
+  lib() { return this.LIB0.concat(this.state.extra); }
+  img(id) { const L = this.lib(); return L.find(i => i.id === id) || L[0]; }
+  def(key) {
+    const C = this.CFG[key], S = this.SIZES[key], cx = S.W / 2, L = [];
+    const add = (id, x, y, s, vis = true) => L.push({ id, cx: x, cy: y, s, vis });
+    [['drk', -20, true], ['div', 0, false], ['everest', 29.5, true]].forEach(([id, o, v]) => add(id, cx, C.lc + o * C.ls, C.ls, v));
+    [['head', 0, 0], ['under', 0, 104], ['tagA', -250, 180], ['vs', 0, 180], ['tagB', 250, 180]].forEach(([id, xo, yo]) => add(id, cx + xo * C.ts, C.to + yo * C.ts, C.ts));
+    return { layers: L, g: [{ cy: C.g1[0], h: C.g1[1], op: 45 }, { cy: C.g2[0], h: C.g2[1], op: 35 }], fa: this.auto(key, C.fa[0], 'a', L), fb: this.auto(key, C.fb[0], 'b', L), divider: false };
+  }
+  lay(k) { return this.state.layouts[k] || this._d[k] || (this._d[k] = this.def(k)); }
+  mod(fn, extra) {
+    const k = this.state.size, l = JSON.parse(JSON.stringify(this.lay(k)));
+    fn(l);
+    const layouts = { ...this.state.layouts, [k]: l };
+    this.setState({ layouts, ...(extra || {}) });
+    try { localStorage.setItem(this.LS, JSON.stringify(layouts)); } catch (e) {}
+  }
+  geom(k, fr, side) {
+    const S = this.SIZES[k], lr = S.split === 'lr', fw = lr ? S.W / 2 : S.W, fh = lr ? S.H : S.H / 2;
+    const x = side === 'b' && lr ? fw : 0, y = side === 'b' && !lr ? fh : 0, im = this.img(fr.img);
+    const sc = Math.max(fw / im.w, fh / im.h) * fr.z, dw = im.w * sc, dh = im.h * sc;
+    const ovx = Math.max(0, (dw - fw) / 2), ovy = Math.max(0, (dh - fh) / 2);
+    return { x, y, fw, fh, dw, dh, ovx, ovy, ix: (fw - dw) / 2 + fr.px * ovx, iy: (fh - dh) / 2 + fr.py * ovy, src: im.src };
+  }
+  auto(k, id, side, layers) {
+    const S = this.SIZES[k], lr = S.split === 'lr', fw = lr ? S.W / 2 : S.W, fh = lr ? S.H : S.H / 2, im = this.img(id), s = im.subj;
+    if (!s) return { img: id, z: 1, px: 0, py: 0 };
+    const x0 = side === 'b' && lr ? fw : 0, y0 = side === 'b' && !lr ? fh : 0, c0 = Math.max(fw / im.w, fh / im.h);
+    const B = (layers || []).filter(a => a.vis).map(a => { const d = this.DEFS[a.id], w = d.iw * a.s / 2, h = d.ih * a.s / 2; return [a.cx - w, a.cy - h, a.cx + w, a.cy + h]; });
+    if (k === 'story') B.push([0, 0, S.W, 250], [0, S.H - 340, S.W, S.H]);
+    const ov = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+    const blk = r => Math.min(1, B.reduce((t, b) => t + ov(r, b), 0) / Math.max(1e-9, (r[2] - r[0]) * (r[3] - r[1])));
+    const cl = v => Math.max(-1, Math.min(1, v)), m = fh * .04;
+    const zfit = Math.max(1, Math.min(3, Math.min(fw * .92 / ((s[2] - s[0]) * im.w), fh * .92 / ((s[3] - s[1]) * im.h)) / c0));
+    let best = { sc: -1e9, z: 1, px: 0, py: 0 };
+    for (let z = 1; z <= zfit + 1e-9; z += .04) {
+      const dw = im.w * c0 * z, dh = im.h * c0 * z, ovx = Math.max(0, (dw - fw) / 2), ovy = Math.max(0, (dh - fh) / 2);
+      for (let j = 0; j <= 20; j++) {
+        const px = ovx ? -1 + j * .1 : 0, ix = (fw - dw) / 2 + px * ovx;
+        for (let i = 0; i <= 40; i++) {
+          const py = ovy ? -1 + i * .05 : 0, iy = (fh - dh) / 2 + py * ovy;
+          const R = b => [x0 + ix + b[0] * dw, y0 + iy + b[1] * dh, x0 + ix + b[2] * dw, y0 + iy + b[3] * dh];
+          const sb = R(s);
+          if (sb[1] >= y0 + m - 1e-6 && sb[3] <= y0 + fh - m + 1e-6 && sb[0] >= x0 + fw * .03 && sb[2] <= x0 + fw * .97) {
+            const dep = k === 'story' ? (Math.max(0, 250 - sb[1]) + Math.max(0, sb[3] - (S.H - 340))) / fh : 0;
+            const sc = 3 * (1 - blk(R(im.head || s))) + 1.5 * (1 - blk(R(im.boots || s))) + z / zfit - blk(sb) - 2 * dep;
+            if (sc > best.sc + 1e-9) best = { sc, z, px, py };
+          }
+          if (!ovy) break;
+        }
+        if (!ovx) break;
+      }
+    }
+    return { img: id, z: best.z, px: best.px, py: best.py };
+  }
+  bbox(L, ids) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    L.layers.filter(l => ids.includes(l.id)).forEach(l => {
+      const d = this.DEFS[l.id], w = d.iw * l.s / 2, h = d.ih * l.s / 2;
+      x0 = Math.min(x0, l.cx - w); x1 = Math.max(x1, l.cx + w); y0 = Math.min(y0, l.cy - h); y1 = Math.max(y1, l.cy + h);
+    });
+    return x1 < x0 ? null : { x0, y0, x1, y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+  }
+  layerSel() { return this.state.sel.filter(i => this.DEFS[i]); }
+
+  componentDidMount() {
+    try {
+      const s = JSON.parse(localStorage.getItem(this.LS) || 'null');
+      if (s) this.setState({ layouts: s });
+    } catch (e) {}
+    this.initLogos();
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.areaRef.current) { this.obs = this.areaRef.current; this.ro.observe(this.areaRef.current); }
+    this.fit(); setTimeout(this.fit, 100); setTimeout(this.fit, 500);
+    window.addEventListener('resize', this.fit);
+    this.fitTimer = setInterval(this.fit, 400);
+    window.addEventListener('keydown', this.onKey);
+  }
+  async initLogos() {
+    try { this.custom = JSON.parse(localStorage.getItem('everest-sb-logos-v2') || '{}') || {}; } catch (e) { this.custom = {}; }
+    try {
+      const im = await this.load('uploads/DRK_zold_ollo nelkul feher.png');
+      for (const [t, col] of [['white', '#ffffff'], ['beige', '#e8d9c1']]) {
+        const c = document.createElement('canvas'); c.width = 1000; c.height = Math.round(1000 * im.height / im.width);
+        const x = c.getContext('2d'); x.drawImage(im, 0, 0, c.width, c.height); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height);
+        this.tones[t] = c.toDataURL('image/png');
+      }
+    } catch (e) { console.error(e); }
+    const drk = this.custom.drk || this.tones[this.state.drkTone] || null;
+    this.setState({ logos: { drk, everest: this.custom.everest || 'uploads/everest-logo.png' }, drkDef: !this.custom.drk });
+  }
+  onTone = (e) => {
+    const t = e.currentTarget.dataset.k; this.setState({ drkTone: t });
+    if (this.state.drkDef && this.tones[t]) this.setState({ logos: { ...this.state.logos, drk: this.tones[t] } });
+  };
+  componentWillUnmount() { clearInterval(this.fitTimer); this.ro && this.ro.disconnect(); window.removeEventListener('keydown', this.onKey); window.removeEventListener('resize', this.fit); }
+  componentDidUpdate() {
+    const a = this.areaRef.current;
+    if (a && a !== this.obs) { this.obs = a; this.ro && this.ro.observe(a); }
+    this.fit();
+  }
+  fit = () => {
+    const a = this.areaRef.current; if (!a) return;
+    const S = this.SIZES[this.state.size];
+    if (!a.clientWidth || !a.clientHeight) return;
+    const vs = Math.max(.05, Math.min((a.clientWidth - 56) / S.W, (a.clientHeight - 56) / S.H));
+    if (Math.abs(vs - this.state.vs) > .001) this.setState({ vs });
+  };
+  onKey = (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const ids = this.layerSel(); if (!ids.length) return;
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!d) return;
+    e.preventDefault();
+    const m = e.shiftKey ? 10 : 1;
+    this.mod(l => l.layers.forEach(a => { if (ids.includes(a.id)) { a.cx += d[0] * m; a.cy += d[1] * m; } }));
+  };
+
+  onDown = (e) => {
+    if (e.button !== 0) return;
+    const el = this.stageRef.current, r = el.getBoundingClientRect(), vs = this.state.vs;
+    const pt = ev => ({ x: (ev.clientX - r.left) / vs, y: (ev.clientY - r.top) / vs });
+    const k = this.state.size, S = this.SIZES[k], l0 = this.lay(k), p0 = pt(e);
+    const hd = e.target.closest('[data-handle]'), ly = e.target.closest('[data-lid]');
+    let mode, ids = [], side = 'a', gm = this.state.gm;
+    if (hd) { mode = 'rs'; ids = this.layerSel(); }
+    else if (ly) {
+      mode = 'mv';
+      const id = ly.getAttribute('data-lid'); let sel = this.state.sel.filter(i => this.DEFS[i]);
+      if (e.shiftKey) sel = sel.includes(id) ? sel.filter(i => i !== id) : sel.concat(id);
+      else if (gm) sel = Object.keys(this.DEFS).filter(i => this.DEFS[i].g === this.DEFS[id].g);
+      else if (!sel.includes(id)) sel = [id];
+      ids = sel; this.setState({ sel });
+    } else {
+      mode = 'pan'; side = S.split === 'lr' ? (p0.x < S.W / 2 ? 'a' : 'b') : (p0.y < S.H / 2 ? 'a' : 'b');
+      this.setState({ af: side, sel: [] });
+    }
+    if (!ids.length && mode !== 'pan') return;
+    const snap = l0.layers.filter(a => ids.includes(a.id)).map(a => ({ ...a }));
+    const bb = mode === 'pan' ? null : this.bbox(l0, ids);
+    const fr = l0['f' + side], g0 = this.geom(k, fr, side), st = { px: fr.px, py: fr.py };
+    const mv = (ev) => {
+      const p = pt(ev); let dx = p.x - p0.x, dy = p.y - p0.y;
+      if (mode === 'mv') {
+        const gd = { v: false, h: false };
+        if (this.state.snap && !ev.altKey) {
+          const th = 8 / vs;
+          if (Math.abs(bb.cx + dx - S.W / 2) < th) { dx = S.W / 2 - bb.cx; gd.v = true; }
+          if (Math.abs(bb.cy + dy - S.H / 2) < th) { dy = S.H / 2 - bb.cy; gd.h = true; }
+        }
+        this.mod(l => l.layers.forEach(a => { const s0 = snap.find(q => q.id === a.id); if (s0) { a.cx = s0.cx + dx; a.cy = s0.cy + dy; } }), { guides: gd });
+      } else if (mode === 'rs') {
+        const d0 = Math.hypot(p0.x - bb.cx, p0.y - bb.cy) || 1, d1 = Math.hypot(p.x - bb.cx, p.y - bb.cy);
+        const q = Math.max(.1, Math.min(6, d1 / d0));
+        this.mod(l => l.layers.forEach(a => { const s0 = snap.find(z => z.id === a.id); if (s0) { a.cx = bb.cx + (s0.cx - bb.cx) * q; a.cy = bb.cy + (s0.cy - bb.cy) * q; a.s = s0.s * q; } }));
+      } else {
+        this.mod(l => { const f = l['f' + side]; if (g0.ovx) f.px = Math.max(-1, Math.min(1, st.px + dx / g0.ovx)); if (g0.ovy) f.py = Math.max(-1, Math.min(1, st.py + dy / g0.ovy)); });
+      }
+    };
+    const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); this.setState({ guides: { v: false, h: false } }); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  };
+  onDbl = (e) => {
+    const ly = e.target.closest('[data-lid]'); if (!ly) return;
+    const g = this.DEFS[ly.getAttribute('data-lid')].g;
+    this.setState({ sel: Object.keys(this.DEFS).filter(i => this.DEFS[i].g === g) });
+  };
+  onSize = (e) => { this.setState({ size: e.currentTarget.dataset.k, sel: [], af: 'a' }, this.fit); };
+  onSide = (e) => this.setState({ af: e.currentTarget.dataset.k, sel: [] });
+  onPick = (e) => { const id = e.currentTarget.dataset.k, af = this.state.af; this.mod(l => { l['f' + af] = this.auto(this.state.size, id, af, l.layers); }); };
+  onRow = (e) => { const id = e.currentTarget.dataset.k; this.setState({ sel: e.shiftKey ? this.state.sel.concat(id) : [id] }); };
+  onVis = (e) => { e.stopPropagation(); const id = e.currentTarget.dataset.k; this.mod(l => { const a = l.layers.find(q => q.id === id); a.vis = !a.vis; }); };
+  onGroup = (e) => { const g = e.currentTarget.dataset.k; this.setState({ sel: Object.keys(this.DEFS).filter(i => this.DEFS[i].g === g) }); };
+  onTog = (e) => {
+    const k = e.currentTarget.dataset.k, c = e.currentTarget.checked;
+    if (k === 'divider') this.mod(l => { l.divider = c; }); else this.setState({ [k]: c });
+  };
+  onAct = (e) => {
+    const k = e.currentTarget.dataset.k, S = this.SIZES[this.state.size], l0 = this.lay(this.state.size), ids = this.layerSel();
+    if (k === 'rl') { const d = this.def(this.state.size); this.mod(l => { Object.assign(l, d); }); this.setState({ sel: [] }); }
+    else if (k === 'rf') { const af = this.state.af; this.mod(l => { l['f' + af] = this.auto(this.state.size, l['f' + af].img, af, l.layers); }); }
+    else if (ids.length) {
+      const bb = this.bbox(l0, ids);
+      this.mod(l => l.layers.forEach(a => { if (ids.includes(a.id)) { if (k === 'cx') a.cx += S.W / 2 - bb.cx; else a.cy += S.H / 2 - bb.cy; } }));
+    }
+  };
+  onSl = (e) => {
+    const k = e.currentTarget.dataset.k, v = +e.currentTarget.value, af = this.state.af, ids = this.layerSel(), l0 = this.lay(this.state.size);
+    const gi = this.state.sel[0] === 'g2' ? 1 : 0;
+    if (k === 'zoom') this.mod(l => { l['f' + af].z = v / 100; });
+    else if (k === 'px') this.mod(l => { l['f' + af].px = v / 100; });
+    else if (k === 'py') this.mod(l => { l['f' + af].py = v / 100; });
+    else if (k === 'gop') this.mod(l => { l.g[gi].op = v; });
+    else if (k === 'gh') this.mod(l => { l.g[gi].h = v; });
+    else if (k === 'gcy') this.mod(l => { l.g[gi].cy = v; });
+    else if (k === 'scale' && ids.length) {
+      const bb = this.bbox(l0, ids), f = l0.layers.find(a => a.id === ids[0]), q = (v / 100) / f.s;
+      this.mod(l => l.layers.forEach(a => { if (ids.includes(a.id)) { a.cx = bb.cx + (a.cx - bb.cx) * q; a.cy = bb.cy + (a.cy - bb.cy) * q; a.s *= q; } }));
+    }
+  };
+  onUpload = (e) => {
+    const k = e.currentTarget.dataset.k, f = e.currentTarget.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const src = rd.result;
+      if (k === 'font') { const ff = new FontFace('Athletico Pro', 'url(' + src + ')', { weight: '100 900' }); ff.load().then(() => { document.fonts.add(ff); this.setState({ fontOk: true }); }).catch(() => {}); return; }
+      if (k === 'img') {
+        const im = new Image();
+        im.onload = () => {
+          const id = 'up' + Date.now(), af = this.state.af;
+          this.setState({ extra: this.state.extra.concat({ id, side: 'U', label: f.name.slice(0, 14), src, w: im.naturalWidth, h: im.naturalHeight }) }, () => this.mod(l => { l['f' + af].img = id; }));
+        };
+        im.src = src;
+      } else {
+        this.custom = { ...this.custom, [k]: src };
+        this.setState({ logos: { ...this.state.logos, [k]: src }, drkDef: k === 'drk' ? false : this.state.drkDef });
+        try { localStorage.setItem('everest-sb-logos-v2', JSON.stringify(this.custom)); } catch (er) {}
+      }
+    };
+    rd.readAsDataURL(f);
+  };
+
+  load(src) {
+    if (!this.cache[src]) this.cache[src] = new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
+    return this.cache[src];
+  }
+  async fonts() {
+    const t = 'EGY BAKANCS, KÉT STÍLUS LETISZTULT VAGÁNY VS. DRK EVEREST ×';
+    await Promise.all(['900 74px "Athletico Pro"', '900 74px Montserrat', '600 38px Montserrat', '300 44px "Athletico Pro"', '300 44px Montserrat', '800 46px "Barlow Condensed"'].map(f => document.fonts.load(f, t).catch(() => 0)));
+  }
+  async drawL(x, id) {
+    const d = this.DEFS[id], lg = this.state.logos;
+    x.fillStyle = '#f8f8f8'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    if (d.g === 'logos') { x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 8; x.shadowOffsetY = 2; }
+    const txt = (t, font, y) => { x.font = font; const m = x.measureText('M'); x.fillText(t, 0, y + (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2); };
+    if (id === 'head') {
+      x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 16; x.shadowOffsetY = 2;
+      txt('EGY BAKANCS,', '900 74px "Athletico Pro", Montserrat', -42); txt('KÉT STÍLUS', '900 74px "Athletico Pro", Montserrat', 42);
+    } else if (id === 'under') { x.translate(-210, -15); x.fillStyle = '#f8f8f8'; x.fill(new Path2D(this.BRUSH)); }
+    else if (id === 'tagA' || id === 'tagB') {
+      x.shadowColor = 'transparent'; x.transform(1, 0, -Math.tan(12 * Math.PI / 180), 1, 0, 0); x.fillStyle = '#f8f8f8'; x.fillRect(-178, -44, 356, 88);
+      x.fillStyle = '#004e37'; txt(id === 'tagA' ? 'LETISZTULT' : 'VAGÁNY', '600 38px Montserrat', 0);
+    } else if (id === 'vs') { x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 12; x.shadowOffsetY = 2; txt('VS.', '300 44px "Athletico Pro", Montserrat', 0); }
+    else if (id === 'cross') txt('× ×', '700 44px "Barlow Condensed"', 0);
+    else if (id === 'div') x.fillRect(-1.5, -28, 3, 56);
+    else {
+      const src = id === 'drk' ? lg.drk : lg.everest;
+      if (src) { const im = await this.load(src), q = Math.min(d.iw / im.width, d.ih / im.height); x.drawImage(im, -im.width * q / 2, -im.height * q / 2, im.width * q, im.height * q); }
+      else if (id === 'drk') txt('DRK', '800 46px "Barlow Condensed"', 0);
+      else txt('EVEREST', '800 40px "Barlow Condensed"', 0);
+    }
+  }
+  async renderCanvas(k) {
+    await this.fonts();
+    const S = this.SIZES[k], l = this.lay(k), c = document.createElement('canvas');
+    c.width = S.W; c.height = S.H;
+    const x = c.getContext('2d'); x.imageSmoothingQuality = 'high';
+    for (const sd of ['a', 'b']) {
+      const g = this.geom(k, l['f' + sd], sd), im = await this.load(g.src);
+      x.save(); x.beginPath(); x.rect(g.x, g.y, g.fw, g.fh); x.clip(); x.drawImage(im, g.x + g.ix, g.y + g.iy, g.dw, g.dh); x.restore();
+    }
+    l.g.forEach(g => {
+      if (g.op <= 0) return;
+      const gr = x.createLinearGradient(0, g.cy - g.h / 2, 0, g.cy + g.h / 2);
+      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(0,0,0,' + g.op / 100 + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = gr; x.fillRect(0, g.cy - g.h / 2, S.W, g.h);
+    });
+    if (l.divider) { x.fillStyle = '#fff'; if (S.split === 'lr') x.fillRect(S.W / 2 - 1, 0, 2, S.H); else x.fillRect(0, S.H / 2 - 1, S.W, 2); }
+    for (const a of l.layers) { if (!a.vis) continue; x.save(); x.translate(a.cx, a.cy); x.scale(a.s, a.s); await this.drawL(x, a.id); x.restore(); }
+    return c;
+  }
+  dl(c, name, fmt) {
+    return new Promise(res => c.toBlob(b => {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000); res();
+    }, fmt === 'jpg' ? 'image/jpeg' : 'image/png', .9));
+  }
+  onExport = async (e) => {
+    const k = e.currentTarget.dataset.k;
+    this.setState({ busy: 'Exportálás…' });
+    try {
+      if (k === 'all') {
+        for (const key of Object.keys(this.SIZES)) {
+          const c = await this.renderCanvas(key), S = this.SIZES[key], nm = 'DRK_Everest_Letisztult_Vagany_' + S.W + 'x' + S.H;
+          await this.dl(c, nm + '.png', 'png'); await new Promise(r => setTimeout(r, 300));
+          await this.dl(c, nm + '.jpg', 'jpg'); await new Promise(r => setTimeout(r, 300));
+        }
+      } else {
+        const key = this.state.size, S = this.SIZES[key], c = await this.renderCanvas(key);
+        await this.dl(c, 'DRK_Everest_Letisztult_Vagany_' + S.W + 'x' + S.H + '.' + k, k);
+      }
+    } catch (er) { console.error(er); }
+    this.setState({ busy: '' });
+  };
+
+  renderVals() {
+    const st = this.state, k = st.size, S = this.SIZES[k], l = this.lay(k), vs = st.vs, lr = S.split === 'lr', lg = st.logos;
+    const btn = (on) => ({ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1, height: 40, padding: '0 12px', border: '1px solid ' + (on ? '#ff6a2b' : '#3a3b43'), background: on ? '#2b1c14' : '#25262c', color: '#e9e9ec', borderRadius: 6, cursor: 'pointer', fontFamily: 'Barlow,sans-serif', flex: 'none', justifyContent: 'center' });
+    const sizeTabs = Object.keys(this.SIZES).map(key => ({ k: key, label: this.SIZES[key].label, sub: this.SIZES[key].sub, style: btn(key === k) }));
+    const frames = ['a', 'b'].map(sd => {
+      const g = this.geom(k, l['f' + sd], sd);
+      return { frame: { position: 'absolute', left: g.x, top: g.y, width: g.fw, height: g.fh, overflow: 'hidden' }, img: { position: 'absolute', left: g.ix, top: g.iy, width: g.dw, height: g.dh, maxWidth: 'none', userSelect: 'none', pointerEvents: 'none', display: 'block', backgroundImage: 'url("' + g.src + '")', backgroundSize: '100% 100%' }, src: g.src };
+    });
+    const gradViews = l.g.map(g => ({ style: { position: 'absolute', left: 0, width: S.W, top: g.cy - g.h / 2, height: g.h, pointerEvents: 'none', background: 'linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,' + g.op / 100 + '), rgba(0,0,0,0))' } }));
+    const layerViews = l.layers.filter(a => a.vis).map(a => {
+      const d = this.DEFS[a.id];
+      return {
+        id: a.id, src: a.id === 'drk' ? lg.drk : lg.everest, imgStyle: { width: '100%', height: '100%', pointerEvents: 'none', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'contain', backgroundImage: 'url("' + (a.id === 'drk' ? lg.drk : lg.everest) + '")' },
+        style: { position: 'absolute', left: a.cx - d.iw / 2, top: a.cy - d.ih / 2, width: d.iw, height: d.ih, transform: 'scale(' + a.s + ')', transformOrigin: '50% 50%', cursor: 'move', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: d.g === 'logos' ? 'drop-shadow(0 2px 4px rgba(0,0,0,.45))' : 'none' },
+        drkImg: a.id === 'drk' && !!lg.drk, drkTxt: a.id === 'drk' && !lg.drk, evImg: a.id === 'everest' && !!lg.everest, evTxt: a.id === 'everest' && !lg.everest,
+        isCross: a.id === 'cross', isDiv: a.id === 'div', isHead: a.id === 'head', isUnder: a.id === 'under', isTagA: a.id === 'tagA', isVs: a.id === 'vs', isTagB: a.id === 'tagB'
+      };
+    });
+    const ids = this.layerSel(), bb = ids.length ? this.bbox(l, ids) : null, ln = 2 / vs;
+    const outlines = l.layers.filter(a => ids.includes(a.id) && a.vis).map(a => { const d = this.DEFS[a.id]; return { style: { position: 'absolute', left: a.cx - d.iw * a.s / 2, top: a.cy - d.ih * a.s / 2, width: d.iw * a.s, height: d.ih * a.s, outline: (1.5 / vs) + 'px solid rgba(255,106,43,.9)' } }; });
+    const gsel = st.sel[0] === 'g1' || st.sel[0] === 'g2', gi = st.sel[0] === 'g2' ? 1 : 0, gg = l.g[gi];
+    const fr = l['f' + st.af], gm = this.geom(k, fr, st.af);
+    const ctr = (a, b) => ({ position: 'absolute', background: '#19d3ff', pointerEvents: 'none', ...a, ...b });
+    const sideTabs = [{ k: 'a', label: (lr ? 'Bal' : 'Felül') + ' · LETISZTULT' }, { k: 'b', label: (lr ? 'Jobb' : 'Alul') + ' · VAGÁNY' }].map(s => ({ ...s, style: { flex: 1, height: 32, border: '1px solid ' + (st.af === s.k ? '#ff6a2b' : '#3a3b43'), background: st.af === s.k ? '#2b1c14' : '#25262c', color: '#e9e9ec', borderRadius: 6, cursor: 'pointer', font: "600 12px 'Barlow',sans-serif" } }));
+    const thumbs = this.lib().map(i => {
+      const on = i.id === fr.img;
+      return { id: i.id, label: i.label, src: i.src, imgStyle: { width: '100%', height: '100%', pointerEvents: 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundImage: 'url("' + i.src + '")' }, style: { position: 'relative', padding: 0, aspectRatio: '1', border: '2px solid ' + (on ? '#ff6a2b' : 'transparent'), borderRadius: 5, overflow: 'hidden', background: '#000', cursor: 'pointer' }, tagStyle: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: '8px 2px 2px', fontSize: 8.5, lineHeight: 1.1, color: '#fff', textAlign: 'left', fontFamily: 'Barlow,sans-serif', fontWeight: 600, background: 'linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,0))' } };
+    });
+    const layerRows = l.layers.map(a => {
+      const on = st.sel.includes(a.id);
+      return { id: a.id, label: this.DEFS[a.id].label, eyeTxt: a.vis ? '●' : '○', style: { display: 'flex', alignItems: 'center', gap: 8, height: 30, padding: '0 8px', borderRadius: 5, cursor: 'pointer', background: on ? '#2b1c14' : '#212228', border: '1px solid ' + (on ? '#ff6a2b' : 'transparent'), opacity: a.vis ? 1 : .5 }, eye: { border: 0, background: 'transparent', color: '#b5b7bf', cursor: 'pointer', width: 18, padding: 0, fontSize: 12 } };
+    }).concat([['g1', 'Átmenet · szövegblokk'], ['g2', 'Átmenet · logósor']].map(([id, label]) => { const on = st.sel.includes(id); return { id, label, eyeTxt: '▒', style: { display: 'flex', alignItems: 'center', gap: 8, height: 30, padding: '0 8px', borderRadius: 5, cursor: 'pointer', background: on ? '#2b1c14' : '#212228', border: '1px solid ' + (on ? '#ff6a2b' : 'transparent') }, eye: { border: 0, background: 'transparent', color: '#6d6f78', width: 18, padding: 0, fontSize: 12, pointerEvents: 'none' } }; }));
+    const f0 = ids.length ? l.layers.find(a => a.id === ids[0]) : null;
+    return {
+      areaRef: this.areaRef, stageRef: this.stageRef, sizeTabs, frames, gradViews, layerViews, outlines, sideTabs, thumbs, layerRows,
+      allLabel: st.busy || 'Összes méret letöltése',
+      wrapStyle: { position: 'absolute', left: '50%', top: '50%', width: S.W * vs, height: S.H * vs, transform: 'translate(-50%,-50%)', boxShadow: '0 10px 50px rgba(0,0,0,.55)' },
+      stageStyle: { position: 'absolute', left: 0, top: 0, width: S.W, height: S.H, transformOrigin: '0 0', transform: 'scale(' + vs + ')', touchAction: 'none', userSelect: 'none', cursor: 'grab' },
+      clipStyle: { position: 'absolute', left: 0, top: 0, width: S.W, height: S.H, overflow: 'hidden', background: '#222' },
+      overlayStyle: { position: 'absolute', left: 0, top: 0, width: S.W, height: S.H, pointerEvents: 'none' },
+      divider: l.divider, dividerStyle: lr ? { position: 'absolute', left: S.W / 2 - 1, top: 0, width: 2, height: S.H, background: '#fff', pointerEvents: 'none' } : { position: 'absolute', top: S.H / 2 - 1, left: 0, height: 2, width: S.W, background: '#fff', pointerEvents: 'none' },
+      safeOn: k === 'story' && st.safe,
+      safeTop: { position: 'absolute', left: 0, top: 0, width: S.W, height: 250, background: 'rgba(255,40,40,.14)', borderBottom: ln + 'px dashed rgba(255,90,90,.9)' },
+      safeBot: { position: 'absolute', left: 0, top: S.H - 340, width: S.W, height: 340, background: 'rgba(255,40,40,.14)', borderTop: ln + 'px dashed rgba(255,90,90,.9)' },
+      frameHi: !ids.length && !gsel, frameHiStyle: { position: 'absolute', left: gm.x, top: gm.y, width: gm.fw, height: gm.fh, boxShadow: 'inset 0 0 0 ' + (3 / vs) + 'px rgba(255,106,43,.85)' },
+      hasBox: !!bb, boxStyle: bb ? { position: 'absolute', left: bb.x0, top: bb.y0, width: bb.x1 - bb.x0, height: bb.y1 - bb.y0, border: ln + 'px dashed #ff6a2b' } : {},
+      handleStyle: bb ? { position: 'absolute', left: bb.x1 - 9 / vs, top: bb.y1 - 9 / vs, width: 18 / vs, height: 18 / vs, background: '#fff', border: ln + 'px solid #ff6a2b', cursor: 'nwse-resize', pointerEvents: 'auto', borderRadius: 2 / vs } : {},
+      guideV: st.guides.v, guideVStyle: ctr({ left: S.W / 2 - 1 / vs, top: 0, width: 2 / vs, height: S.H }),
+      guideH: st.guides.h, guideHStyle: ctr({ top: S.H / 2 - 1 / vs, left: 0, height: 2 / vs, width: S.W }),
+      frameOp: gsel || ids.length ? .45 : 1,
+      zoomVal: Math.round(fr.z * 100), pxVal: Math.round(fr.px * 100), pyVal: Math.round(fr.py * 100),
+      noX: gm.ovx < 1, noY: gm.ovy < 1, xOp: { opacity: gm.ovx < 1 ? .3 : 1 }, yOp: { opacity: gm.ovy < 1 ? .3 : 1 },
+      hasLayerSel: !!f0, sclVal: f0 ? Math.round(f0.s * 100) : 100,
+      hasGradSel: gsel, gOp: gg.op, gH: Math.round(gg.h), gY: Math.round(gg.cy), gMaxY: S.H,
+      snapOn: st.snap, safeChk: st.safe, gmOn: st.gm,
+      fontState: st.fontOk ? 'betöltve ✓' : 'Montserrat Black', drkState: lg.drk ? 'betöltve ✓' : 'helyőrző', evState: lg.everest ? 'betöltve ✓' : 'helyőrző', toneTabs: [['white', 'Fehér'], ['beige', 'Bézs']].map(([k, label]) => ({ k, label, style: { flex: 1, height: 30, border: '1px solid ' + (st.drkTone === k ? '#ff6a2b' : '#3a3b43'), background: st.drkTone === k ? '#2b1c14' : '#25262c', color: '#e9e9ec', borderRadius: 6, cursor: 'pointer', font: "600 12px 'Barlow',sans-serif" } })), onTone: this.onTone,
+      onSize: this.onSize, onExport: this.onExport, onDown: this.onDown, onDbl: this.onDbl, onSide: this.onSide, onPick: this.onPick, onUpload: this.onUpload,
+      onSl: this.onSl, onAct: this.onAct, onGroup: this.onGroup, onRow: this.onRow, onVis: this.onVis, onTog: this.onTog
+    };
+  }
+}
+</script>
+</body>
+</html>
